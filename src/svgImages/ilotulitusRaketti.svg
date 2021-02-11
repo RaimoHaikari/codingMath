@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="400" version="1.1" viewBox="0 0 105.83 105.83" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g transform="rotate(-37.06 62.05 65.825)">
+  <g stroke="#000">
+   <path transform="scale(.26458)" d="m205.48 170.37v108.76h49.482v-108.76z" fill="none" stop-color="#000000" stroke-width=".21374"/>
+   <path transform="matrix(.6437 0 0 .86052 21.932 9.5506)" d="m41.195 41.286 19.135-33.143 19.135 33.143z" fill="none" stop-color="#000000" stroke-width=".065"/>
+   <path transform="scale(.26458)" d="m225 279.14v61.523h10.439v-61.523z" fill="#241c1c" stop-color="#000000" stroke-width=".24567"/>
+   <path transform="matrix(.6437 0 0 .86052 21.932 9.5506)" d="m41.195 41.286 19.135-33.143 19.135 33.143z" fill="#00f" stop-color="#000000" stroke-width=".065"/>
+  </g>
+  <path transform="scale(.26458)" d="m205.48 170.37v7.1445c5.2666-2.1712 10.528-4.5456 15.781-7.1445zm36.109 0c-12.024 7.2199-24.055 13.097-36.109 17.824v16.141c16.56-6.0477 33.073-14.064 49.482-24.449v-9.5156zm13.373 20.76c-16.47 10.286-32.95 18.011-49.482 23.676v15.904c16.55-5.2983 33.061-12.489 49.482-21.959zm0 28.779c-16.461 9.3094-32.941 16.161-49.482 21.049v15.705c16.538-4.5818 33.051-10.973 49.482-19.562zm0 28.232c-16.453 8.37-32.933 14.362-49.482 18.512v12.48h11.818c12.579-3.6131 25.142-8.2823 37.664-14.182z" color="#000000" color-rendering="auto" dominant-baseline="auto" fill="#f00" image-rendering="auto" shape-rendering="auto" solid-color="#000000" stop-color="#000000" style="font-feature-settings:normal;font-variant-alternates:normal;font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;font-variant-position:normal;font-variation-settings:normal;inline-size:0;isolation:auto;mix-blend-mode:normal;shape-margin:0;shape-padding:0;text-decoration-color:#000000;text-decoration-line:none;text-decoration-style:solid;text-indent:0;text-orientation:mixed;text-transform:none;white-space:normal"/>
+  <path transform="scale(.26458)" d="m245.73 279.14c2.6054 2.1352 4.1165 3.9665 4.8438 5.4121 0.75394 1.4985 0.79178 2.5503 0.50196 3.6758-0.57965 2.2509-3.1664 4.8682-5.8692 7.7734-2.7028 2.9053-5.6334 6.4663-5.0117 11.139 0.62169 4.6724 4.4946 9.3144 13.199 15.016l2.4141-3.6836c-8.2673-5.4148-10.912-9.3702-11.25-11.914-0.3385-2.5439 1.3251-4.828 3.8672-7.5606 2.5421-2.7326 5.8544-5.5399 6.918-9.6699 0.53178-2.065 0.32967-4.441-0.83398-6.7539-0.57372-1.1403-1.3602-2.2769-2.3789-3.4336z" color="#000000" color-rendering="auto" dominant-baseline="auto" image-rendering="auto" shape-rendering="auto" solid-color="#000000" stop-color="#000000" style="font-feature-settings:normal;font-variant-alternates:normal;font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;font-variant-position:normal;font-variation-settings:normal;inline-size:0;isolation:auto;mix-blend-mode:normal;shape-margin:0;shape-padding:0;text-decoration-color:#000000;text-decoration-line:none;text-decoration-style:solid;text-indent:0;text-orientation:mixed;text-transform:none;white-space:normal"/>
+  <g fill="none" stroke="#000" stroke-linecap="round" stroke-width="1.165">
+   <path d="m68.842 85.694 2.2714 1.5919"/>
+   <path d="m68.16 82.657 1.6503-2.2294"/>
+   <path d="m63.878 88.473 1.6503-2.2294"/>
+   <path d="m67.666 89.443-0.41418-2.7426"/>
+   <path d="m72.223 82.976-2.5956 0.97799"/>
+  </g>
+ </g>
+ <path d="m73.987 30.416-6.198-0.60568-4.0127 4.7624-1.3393-6.0818-5.7693-2.3446 5.3703-3.1531 0.44707-6.2115 4.6583 4.1331 6.0456-1.4943-2.4913 5.7075z" fill="#d3bc5f" stop-color="#000000" stroke-linecap="round" stroke-width="1.165"/>
+ <path d="m44.899 81.47-7.4762-0.83812 1.0272 7.4526-5.1884-5.4477-4.0036 6.3693-0.47284-7.5082-7.161 2.3057 4.4639-6.0555-6.9677-2.8367 7.312-1.7694-3.5142-6.6518 6.7387 3.3446 1.5837-7.3545 3.0123 6.8936 5.9405-4.6159-2.1236 7.2171 7.5177 0.28255-6.2658 4.1636z" fill="#fc0" stop-color="#000000" stroke-linecap="round" stroke-width="1.165"/>
+</svg>

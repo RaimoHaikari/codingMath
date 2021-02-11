@@ -1,13 +1,232 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+body {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  line-height: 1.6;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+h1, h2, h3, p {
+  margin: 0;
+}
+
+section {
+  padding: 7em 0;
+}
+
+.container {
+  width: 85%;
+  max-width: 65em;
+  margin: 0 auto;
+}
+
+.split {
+  display: flex;
+  gap: 2em;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.split > *  {
+  flex-basis: 30%;
+  min-width: 10em;
+}
+
+/*
+ * kohde: tähän luokaan kuuluvan elementin lapset 
+ * JOILLA JOKU SISAR YLÄPUOLELLA! 
+ */ 
+.spacing > * + * {
+  margin-top: var(--spacer, 2rem);
+}
+
+.btn {
+  display: inline-block;
+  text-decoration: none;
+  color: var(--clr-text, #fff);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 1.125rem;
+  padding: .5em 1.25em;
+  background-color: var(--clr-accent, blue);
+  border-radius: .25em;
+  transition: 
+    transform 250ms ease-in-out,
+    opacity 175 linear;
+}
+
+.btn:hover, .btn:focus {
+  transform: scale(1.0);
+  opacity: .9;
+}
+
+.primary-title {
+  font-size: 2rem;
+  font-size: clamp(3rem, 8vw, 4rem); 
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.section-title {
+  text-align: center;
+  font-size: clamp(2rem, 8vw, 3rem);
+  line-height: 1;
+  color: #17353d;
+  margin-bottom: 3rem;
+
+}
+
+.hero {
+  color: white;
+  text-align: center;
+  padding: 15em 0;
+
+  background: #222;
+
+}
+
+@supports (background-blend-mode: multiply){
+  .hero {
+    background:
+      url(./images/pexels-katerina-holmes-5905489.jpg),
+      radial-gradient(rgb(216, 36, 36), #000);
+
+    background-blend-mode: multiply;
+    background-size: cover;
+
+    background-attachment: fixed;
+    background-position: center center;
+  }
+}
+
+.featured {
+  background: #eee;
+}
+
+.featured_item {
+  display: block;
+  position: relative;
+  transform: scale(.85);
+  transition: transform 250ms ease-in-out;
+
+  text-decoration: none;
+  color: #333;
+  text-align: center;
+}
+
+.featured_item svg {
+  width: 100%;
+  height: auto;
+}
+
+.featured_item:focus,
+.featured_item:hover {
+  transform: scale(1);
+}
+
+.featured_item::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 100% 100% 0 0;
+  background: #2193b0;
+  border-radius: 50%;
+  z-index: -1; 
+}
+
+.featured_item span {
+  display: block;
+  font-weight: 700;
+  font-size: 3rem;
+}
+
+.featured_item .featured_details {
+  opacity: 0;
+  transition: opacity 250ms linear;
+}
+
+.featured_item:hover .featured_details,
+.featured_item:focus .featured_details {
+  opacity: 1;
+}
+
+/*
+ * T u o t t e e t
+ */
+
+ .product {
+   background: radial-gradient(
+      var(--clr-inner, #2c3e50),
+      var(--clr-outer, #bdc3c7)
+   );
+
+   padding: 3em 0;
+   border-radius: 3em;
+   margin-bottom: 3em;
+   text-align: center;
+ }
+
+ .product-title {
+   font-size: clamp(1rem, 8vw, 4rem);
+   line-height: 1-1;
+   color: #fff;
+   text-shadow: 3px 3px #000000;
+ }
+
+ .product svg {
+  width: 100%;
+  height: auto;
+  margin: -5em 0 0 0;
+}
+
+.product-description {
+  color: var(--clr-prod-desc, #000000);
+}
+
+.product-red {
+  --clr-inner: #0f0c29;
+  --clr-outer: #302b63;
+
+  --clr-accent: #6f0000;
+  --clr-prod-desc: #ffffff;
+}
+
+.product-yellow {
+  --clr-inner: #0f2027;
+  --clr-outer: #2c5364;
+
+  --clr-accent: #2f0743;
+  --clr-prod-desc: #ffffff;
+}
+
+.product-green {
+  --clr-inner: #000000;
+  --clr-outer: #0f9b0f;
+
+  --clr-accent: #434343;
+  --clr-prod-desc: rgb(230, 250, 51);
+}
+
+@media(min-width: 45em){
+
+  .product {
+    text-align: left;
+  }
+
+  .product svg {
+    float: left;
+    width: 50%;
+    shape-outside: circle(30%);
+    shape-margin: 3em;
+  }
 }

@@ -1,0 +1,15 @@
+.flex-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.flex-container > div {
+    border-left: 1px solid red;
+
+    flex: 1;
+}
+
+svg {
+    /* border: 1px solid red; */
+}
