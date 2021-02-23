@@ -1,0 +1,10 @@
+.cm-vectorPhysics-container {
+    text-align: center;
+    border: 3px dotted navy;
+}
+
+/* 
+ * T O O L B A R
+ */
+dt { float: left; clear: left; font-weight: bold; margin-right: 5px;}
+dd { float: left; }

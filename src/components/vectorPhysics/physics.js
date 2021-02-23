@@ -7,11 +7,19 @@ export const physics = () => {
 
     let svg;
     let gElem;
+    let backgroundRect;
     let circles;
 
     let data = []
-    let width = 200;
-    let height = 200;
+
+    // "Kankaan" leveys ja korkeus
+    let width = 600;        
+    let height = 600;
+
+    // millä alueella objektien pitää pysyä
+    let heightOfAllowedRange = 400;
+    let widthOfAllowedRange = 400;
+
     let margin = {top: 10, right: 10, bottom: 10, left: 10};
 
     let opacity = 1;
@@ -19,6 +27,7 @@ export const physics = () => {
     let updateData;
     let updateHeight;
     let updateWidth;
+    let updateAllowedRange;
 
     function chart(selection){
 
@@ -30,19 +39,25 @@ export const physics = () => {
             svg = d3
                 .select(this)
                 .append('svg')
-                .attr("viewBox", [0,0, width, height])
+                .attr("viewBox", [0,0, width, height]);
+                    //.attr("width", width)
+                    //.attr("height", height);
 
             gElem = svg
                 .append('g')
                 .attr('transform', ` translate(${width/2},${height/2})`)
 
-            gElem
+                
+            backgroundRect = gElem
                 .append('rect')
-                    .attr("x", -width/2)
-                    .attr("y", -height/2)
-                    .attr("width", width)
-                    .attr("height", height)
-                    .attr("fill", "black")
+                    .attr("x", -widthOfAllowedRange/2)
+                    .attr("y", -heightOfAllowedRange/2)
+                    .attr("width", widthOfAllowedRange)
+                    .attr("height", heightOfAllowedRange)
+                    .attr("stroke","pink")
+                    .attr("stroke-width","5")
+                    .attr("fill", "none");
+                    
 
             circles = gElem
                 .selectAll("circle")
@@ -71,13 +86,35 @@ export const physics = () => {
                         .attr("fill-opacity", opacity)
 
                 circles
+                    .enter()
+                        .append("circle")
+                            .style("stroke", "none")
+                            .style("fill", "navy")
+                            .attr("r", 6)
+                            .attr("cx", d => d.getVector().getX())
+                            .attr("cy", d => d.getVector().getY())
+                            .attr("fill-opacity", opacity)
+
+                circles
                     .exit()
                     .remove()
 
             }
 
             updateHeight = function() {}
+
             updateWidth = function() {}
+
+            updateAllowedRange = function() {
+
+                backgroundRect
+                    .attr("x", -widthOfAllowedRange/2)
+                    .attr("y", -heightOfAllowedRange/2)
+                    .attr("width", widthOfAllowedRange)
+                    .attr("height", heightOfAllowedRange)
+
+                
+            }
 
         })
     }
@@ -108,6 +145,24 @@ export const physics = () => {
 
     }
 
+    /*
+     * Objektien pitää pysyä rajatun alueen sisällä, alue on pienempi kuin
+     * animaation esittämiseen käytetty SVG -elementti, jotta nähdään
+     * objektit pysyvät annetuissa rajoissa
+     */
+    chart.heightOfAllowedRange = function(val){
+
+        if(!arguments.length) return heightOfAllowedRange;
+
+        heightOfAllowedRange = val;
+
+        if(typeof updateAllowedRange === 'function')
+            updateAllowedRange();
+   
+        return chart
+
+    }
+
     chart.opacity = function(val){
  
         if(!arguments.length) return opacity;
@@ -117,14 +172,36 @@ export const physics = () => {
         return chart       
     }
 
+    /*
+     * Animaation esittämiseen käytettävän SVG -elementin leveys
+     */ 
     chart.width = function(val){
 
         if(!arguments.length) return width;
 
         width = val;
 
-        if(typeof updataWidth === 'function')
+        if(typeof updateWidth === 'function')
             updateWidth();
+   
+        return chart
+
+    }
+
+
+    /*
+     * Objektien pitää pysyä rajatun alueen sisällä, alue on pienempi kuin
+     * animaation esittämiseen käytetty SVG -elementti, jotta nähdään
+     * objektit pysyvät annetuissa rajoissa
+     */
+    chart.widthOfAllowedRange = function(val){
+
+        if(!arguments.length) return widthOfAllowedRange;
+
+        widthOfAllowedRange = val;
+
+        if(typeof updateAllowedRange === 'function')
+            updateAllowedRange();
    
         return chart
 

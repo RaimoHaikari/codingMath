@@ -11,56 +11,190 @@ function getRandomColor() {
 
 }
 
+/*
+ * https://stackoverflow.com/questions/287903/what-is-the-preferred-syntax-for-defining-enums-in-javascript
+
+     let newData = fireWorks(state);
+    //let newData = deLaFontaine(state);
+ */
+const ANIMATION = {
+    FIREWORKS : {
+        name: 'Fire',
+        value: 'firework', 
+        description: "The amazing Coding Math firework",
+        setup: function(n){
+            return getFireworksData(n);
+        },
+        newState: function(state){
+            return fireWorks(state);
+        }
+    }, 
+    FOUNTAIN: {
+        name: 'Fountain',
+        value: 'fountain', 
+        description: "The Mind-Blowing Coding Math Fountain",
+        setup: function(n){
+            return getFountainData(n);
+        },
+        newState: function(state){
+            return deLaFontaine(state);
+        }
+    }, 
+};
+
+const getInitialAllowedRangeHeight = () => getInitialHeight() * 0.75;
+const getInitialAllowedRangeWidth = () => getInitialWidth() * 0.75;
+
+const getInitialAnimationType = () => ANIMATION.FIREWORKS;
+
+const getInitialWidth = () => 600;
+
+const getInitialHeight = () => 500;
 
 const getInitialNumberOfParticles = () => 100
 
 /*
+ * Alustetaan aineisto valitun animaation mukaisilla partikkeleilla
  *
+ * @param aType minkä tyyppinen animaatio halutaan esittää
+ * @param n montako partikkelia alustetaan
  */
-const getInitialData = (n) => {
+const getData = (aType, n) => aType.setup(n);
+
+
+/*
+ * Alustetaan aineisto ilotulituksessa esitettävillä partikkeleilla
+ */
+const getFireworksData = (n) => {
 
     let particles = [];
 
     for(var i = 0; i < n; i++){
-        particles.push(
-            new Partile(
-                0,
-                0,
-                Math.random() * 5 + 2,
-                Math.random() * Math.PI * 2,
-                getRandomColor()
-            )
-        )
+        particles.push(getFireworksParticle());
     }
 
-    return particles
+    return particles;
 }
 
 
+/* 
+ * Alustetaan yksittäinen ilotulituksessa käytettävä partikkeli
+ */
+const getFireworksParticle = (posY) => {
+
+    return new Partile(
+        0,
+        0,
+        Math.random() * 5 + 2,
+        Math.random() * Math.PI * 2,
+        getRandomColor()
+    )   
+}
+
+/*
+ * Alustetaan aineisto "suihkulähteessä" esitettävillä partikkeleilla
+ * - edge detection menetelmä on Emitter
+ */
+const getFountainData = (n) => {
+
+    let particles = [];
+
+    let originY = getInitialAllowedRangeHeight() / 2;
+
+
+    for(var i = 0; i < n; i++){
+        particles.push(getFountainParticle(originY))
+    }
+
+    return particles;
+}
+
+/*
+ * Yksittäisen suihkulähteessä esitettävän partikkelin alustus
+ */
+const getFountainParticle = (posY) => {
+
+    return new Partile(
+        0,
+        posY,
+        Math.random() * 8 + 5,
+        -Math.PI / 2 + (Math.random() * 0.2 - 0.1),
+       'navy'
+    );    
+}
+
+/* 
+ * S E T U P   I N I T I A L   V A L U E S
+ */
 const initialState = {
 
+    animation: getInitialAnimationType(),
+    animationTypes: ANIMATION,
+    allowedRangeWidth: getInitialAllowedRangeWidth(),
+    allowedRangeHeight: getInitialAllowedRangeHeight(),
     numberOfParticles: getInitialNumberOfParticles(),
-    data: getInitialData(getInitialNumberOfParticles()),
+    minNumberOfParticles: getInitialNumberOfParticles() * 0.01,
+    maxNumberOfParticles: getInitialNumberOfParticles() * 2.0,
+    data: getData(getInitialAnimationType(), getInitialNumberOfParticles()),
     isActive: false,
-    height: 800,
-    width: 800,
+    height: getInitialHeight(),
+    width: getInitialWidth(),
     round: 0
 }
 
 /*
- *
+ * R E A C T I O N S   T O W A R D S    A C T I O N S
  */
-const calculateNewState = (state) => {
 
+ /*
+  * Partikkelien uuden sijaintipaikan laskeminen
+  *
+  * Välitetään tehtävä käytössä olevan animaatiotyypin mukaiselle funktiolle: 
+  * - deLaFontaine mikäli suihkulähde
+  * - fireWorks mikäli ilotulitus
+  */
+const getNewState = (aType, state) => aType.newState(state);
+
+  /*
+  * EDGE DETECTION: kierrätetään aktiiviselta aluuelta poistuvat partikkelit
+  * - seurataan vain "pohja ja reunojen vuotoa", korkeussuunta ei nyt kiinnosta
+  */
+const deLaFontaine = (state) => {
     /*
+      * Piirtoalueena käytetään g-elementtiä, jonka origo on siirretty
+      * esittävän SVG-elementin keskipisteeseen, jolloin piirtoalueen
+      * rajat ovat puoli leveyttä/korkeutta keskipisteen molemmin puolin
+      */
+     let halfOfHeight = state.allowedRangeHeight / 2;
+ 
+     let newData = state.data
+         .map(p => p.accelerate())
+         .map((p,i) => {
+ 
+             let pos = p.getVector();
+ 
+             // - onko korkeussuunnassa alueen sisällä
+             if(pos.getY() > halfOfHeight){
+                return getFountainParticle(halfOfHeight);
+             }
+ 
+             return p;
+         })
+ 
+     return newData;
+ }
+
+ /*
+  * EDGE DETECTION: poistetaan aktiiviselta aluuelta poistuvat partikkelit
+  */
+const fireWorks = (state) => {
+   /*
      * Piirtoalueena käytetään g-elementtiä, jonka origo on siirretty
      * esittävän SVG-elementin keskipisteeseen, jolloin piirtoalueen
      * rajat ovat puoli leveyttä/korkeutta keskipisteen molemmin puolin
      */
-    let halfOfWidth = state.width / 2;
-    let halfOfHeight = state.height / 2;
-
-    let newRound = state.round+1;
+    let halfOfWidth = state.allowedRangeWidth / 2;
+    let halfOfHeight = state.allowedRangeHeight / 2;
 
     let newData = state.data
         .map(p => p.accelerate())
@@ -81,11 +215,58 @@ const calculateNewState = (state) => {
             return true;
         })
 
-    
+    return newData;
+}
+
+/*
+ * Lasketaan partikkelien uudet sijaintipaikat
+ */
+const calculateNewState = (state) => {
+
+    let newRound = state.round+1;
+    let newData = getNewState(state.animation, state);
+
     return {
         ...state,
         data: newData.length > 0 ? newData : [],
         round: newRound
+    }
+}
+
+/*
+ * Muutetaan animoitavien partikkelien määrää
+ */ 
+const changeParticleCount = (state, data) => {
+
+    let newNOP = data.particles;
+    let newData = getData(state.animation, newNOP);
+
+    return {
+        ...state,
+        numberOfParticles: newNOP,
+        data: newData
+    }
+
+}
+
+/*
+ * Asetetaan esitettävän animaation tyyppi
+ * - vaihtoehtoina ovat Firework ja Fountain
+ */
+const changeAnimationType = (state, data) => {
+
+    const newActive = Object.entries(state.animationTypes)
+        .filter(([key, value]) => {
+            return  value.value === data.type;
+        })[0][1];
+
+    let newData = getData(newActive, state.numberOfParticles);
+
+
+    return {
+        ...state,
+        animation: newActive,
+        data: newData
     }
 }
 
@@ -139,7 +320,7 @@ export const animate = () => {
     
             }, 25)
 
-                    // kirjataan timerin käynnistys muistiin
+            // kirjataan timerin käynnistys muistiin
             dispatch({
                 type: 'TIMER_START',
                 data: {
@@ -180,6 +361,71 @@ export const toggleActiveState = () => {
     }
 }
 
+/*
+ * Partikkeleille sallitun alueen korkeuden säätö
+ */
+export const setAllowedRangeHeight = (val) => {
+
+    return dispatch => {
+
+        dispatch({
+            type: 'PHYSICS_SET_HEIGHT',
+            data: {
+                allowedRangeHeight: val
+            }
+        })
+    }
+}
+
+/*
+ * Partikkeleille sallitun alueen leveyden säätö
+ */
+export const setAllowedRangeWidth = (val) => {
+
+    return dispatch => {
+
+        dispatch({
+            type: 'PHYSICS_SET_WIDTH',
+            data: {
+                allowedRangeWidth: val
+            }
+        })
+    }
+}
+
+/*
+ * Kytketään animaation käynnistävä muuttuja joko päälle tai pois päältä
+ * - muuttuja: isActive
+ */
+export const setAnimationType = (val) => {
+
+    return dispatch => {
+
+        dispatch({
+            type: 'PHYSICS_SET_ANIMATION_TYPE',
+            data: {
+                type: val
+            }
+        })
+    }
+}
+
+/*
+ * Partikkeleille sallitun alueen korkeuden säätö
+ */
+export const setNumberOfParticles = (val) => {
+
+    return dispatch => {
+
+        dispatch({
+            type: 'PHYSICS_SET_PARTICLE_COUNT',
+            data: {
+                particles: val
+            }
+        })
+    }
+}
+
 
 const vectorReducer = (state = initialState, action) => {
 
@@ -187,7 +433,28 @@ const vectorReducer = (state = initialState, action) => {
 
         case 'PHYSICS_ANIMATE':
 
-            return calculateNewState(state)
+            return calculateNewState(state);
+
+        case 'PHYSICS_SET_ANIMATION_TYPE':
+            return changeAnimationType(state, action.data);
+
+        case 'PHYSICS_SET_PARTICLE_COUNT':
+
+            return changeParticleCount(state, action.data);
+
+        case 'PHYSICS_SET_HEIGHT':
+
+            return {
+                ...state,
+                allowedRangeHeight: action.data.allowedRangeHeight
+            }
+
+        case 'PHYSICS_SET_WIDTH':
+
+            return {
+                ...state,
+                allowedRangeWidth: action.data.allowedRangeWidth
+            }
 
         case 'PHYSICS_TOGGLE_ACTIVE':
 

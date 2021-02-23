@@ -21,6 +21,7 @@ const Styles = styled.div`
 
     .cmSettingsLabel {
         font-size: 1em;
+        font-weight: bold;
     }
 
     .cmSettingsSliderValues {

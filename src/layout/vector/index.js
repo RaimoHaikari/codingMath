@@ -18,7 +18,7 @@ const Vectors = () => {
             <Row>
                 <Col sm={4} md={3}>
                     <ToolbarHolder 
-                        defaultActiveKey = {"0"}
+                        defaultActiveKey = {"2"}
                     >
                         <Toolbar />
                     </ToolbarHolder>
@@ -30,5 +30,7 @@ const Vectors = () => {
         </Container>
     );
 };
+
+
 
 export default Vectors;

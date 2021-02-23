@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 
-import {animate, liikuta, toggleActiveState} from "../../reducers/vectorReducer";
+import {animate, toggleActiveState} from "../../reducers/vectorReducer";
 
 import {select} from "d3";
 
@@ -14,7 +14,16 @@ const VectorPhysics = () => {
     const refElement = useRef(null);
     const visFunction = useRef(null);
 
-    const {data, height, isActive, width, opacity} = useSelector(state => {
+    const {
+        allowedRangeHeight, 
+        allowedRangeWidth, 
+        data, 
+        height, 
+        isActive, 
+        width, 
+        opacity
+    } = useSelector(state => {
+
         let opacity = (100 - state.vector.round)/100;
 
         return {
@@ -24,26 +33,61 @@ const VectorPhysics = () => {
 
     })
 
+    /*
+     * D3 -grafiikan alustus
+     */
     const initVis = () => {
 
         visFunction.current = physics()
             .data(data)
             .height(height)
             .width(width)
+            .heightOfAllowedRange(allowedRangeHeight)
+            .widthOfAllowedRange(allowedRangeWidth)
 
         select(refElement.current)
             .call(visFunction.current)
             
     }
 
+    /*
+     * D3-grafiikan (aineiston) päivitys
+     */
     const updateVis = () => {
 
         visFunction.current
             .opacity(opacity)
             .data(data)
-            
-        
+              
     }
+
+    /*
+     * Partikkeleille sallitusn alueen korkeuden päivitys
+     */
+    useEffect(() => {
+
+        if(visFunction.current !== null){
+
+            visFunction.current
+                .heightOfAllowedRange(allowedRangeHeight);         
+        }
+
+        return () => { console.log('width cleanup') };
+
+    }, [allowedRangeHeight])
+
+
+    useEffect(() => {
+
+        if(visFunction.current !== null){
+
+            visFunction.current
+                .widthOfAllowedRange(allowedRangeWidth);         
+        }
+
+        return () => { console.log('width cleanup') };
+
+    }, [allowedRangeWidth])
 
     useEffect(() => {
 
@@ -55,6 +99,14 @@ const VectorPhysics = () => {
                 updateVis()
 
         //}
+
+            if(data.length == 0) {
+                dispatch(toggleActiveState())
+            }
+
+        return () => {
+            console.log('data cleanup')
+        }
         
     }, [data])
 
@@ -62,18 +114,16 @@ const VectorPhysics = () => {
 
         dispatch(animate())
 
+        return () => {
+            console.log('isActive cleanup')
+        }
+
     }, [isActive])
 
     return (
         <>
-            <div ref={refElement} className="trig-container">
-            </div>
-            <button onClick={() => dispatch(toggleActiveState())}>
-                {isActive?'Pysäytä':'Räjäytä'}
-            </button>
-            <button onClick={() => dispatch(liikuta())}>
-                Liikuta
-            </button>	  
+            <div ref={refElement} className="cm-vectorPhysics-container">
+            </div>  
         </>
     );
 

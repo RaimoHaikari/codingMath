@@ -125,7 +125,9 @@ class Vector {
  * - Partikkelilla on paikka, eli position.
  * - Velocity määrittää kuinka paljo ja mihinkä suuntaan Partikkeli liikkuu,
  *   eli kuinka sijaintia korjataan
- * - Liike ei ole tasaista, vaan sen määrää säädellään gravityn -arvolla
+ * - Liike ei ole tasaista, vaan sen määrää säädellään gravityn -arvolla.
+ *   Ajan myötä ylös nostava voima hiipuu ja partikkeli alkaa painua
+ *   kiihtyvällä tahdilla kohti maata.
  */
 class Partile {
 
