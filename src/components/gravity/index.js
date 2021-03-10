@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 
-import {liikuta} from "../../reducers/gravitationReducer";
+import {animate, liikuta} from "../../reducers/gravitationReducer";
 
 import {select} from "d3";
 
@@ -15,20 +15,22 @@ const SolarSystem = () => {
     const refElement = useRef(null);
     const visFunction = useRef(null);
 
-    const {data, height, isActive, width} = useSelector(state => state.gravitation);
+    const {preview, data, height, isActive, width} = useSelector(state => state.gravitation);
 
     /*
      * d3 -komponentin alustus
      */
     const initVis = () => {
-
+        
         visFunction.current = D3Gravity()
-            .data(data)
             .height(height)
             .width(width)
+            .preview(preview)
+            .data(data)
 
         select(refElement.current)
             .call(visFunction.current)
+            
             
     }
 
@@ -38,13 +40,33 @@ const SolarSystem = () => {
     const updateVis = () => {
 
         visFunction.current
+            .preview(preview)
             .data(data)
             
     }
 
+
+    /*
+     *
+     
     useEffect(() => {
 
         if(data && data.length){
+
+            if(visFunction.current !== null)
+                console.log("Aika päivittää esikatselu")
+
+        }
+        
+    }, [preview])
+    */
+    
+
+    useEffect(() => {
+
+        if(data && data.length){
+
+            console.log("Aika päivittää data")
 
             if(visFunction.current === null)
                 initVis()
@@ -53,16 +75,33 @@ const SolarSystem = () => {
 
         }
         
-    }, [data])
+    }, [data, preview])
 
 
+
+    /*
+     * Animaation hallinta
+     * - tarkkaillaan isActive -muuttujan tilaa
+     * - aina kun tila muuttuu, ajetaan animate -kutsu, jonka toiminta
+     *   riippuu siitä onko isActive -muuttujan tila true vai false
+     */
+    useEffect(() => {
+
+        dispatch(animate())
+
+        return () => {
+            console.log('isActive cleanup')
+        }
+
+    }, [isActive])
+
+
+    /*
+, margin: "auto", maxWidth:"600px"
+     */
     return (
         <>
-            <div style={{border: "1px solid navy", margin: "auto", maxWidth:"600px"}}>
-                <svg ref={refElement} id="mainSVG">
-                </svg>
-            </div>
-            <button onClick={() => dispatch(liikuta())}>Liikuta</button>
+            <svg ref={refElement} id="mainSVG"></svg>
         </>
     );
 };

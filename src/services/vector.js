@@ -348,7 +348,7 @@ class CelestialBody {
     }
 
     /*
-     * Laskee tämän ja parametrin välittämän planeetan välisen kulman
+     * Laskee tämän ja parametrin välittämän taivaankappaleen välisen kulman
      */
     angleTo = (p2) => {
 
@@ -364,6 +364,7 @@ class CelestialBody {
      */
     distanceTo = (p2) => {
 
+
         let deltaY = p2._position.getY() - this._position.getY();
         let deltaX = p2._position.getX() - this._position.getX();  
         
@@ -371,18 +372,25 @@ class CelestialBody {
     }
 
     /*
-     * Laskee parametrin välittämän planeetan vetovoiman tähän planeettan 
+     * Laskee parametrin välittämän taivaankappaleen vetovoiman tämän planeettan 
      * liikerataan aiheuttama muutos.
      */
     gravitateTo = (p2) => {
 
+
+        /*
+         * Lasketaan ensin vektori, joka kertoo "vetävän" kappaleen
+         * aiheuttaman voiman
+         */
         let grav = new Vector(0,0);
         let distance = this.distanceTo(p2);
-
 
         grav = grav.setLength(p2.getMass() / (distance * distance))
         grav = grav.setAngle(this.angleTo(p2))
 
+        /*
+         * Em. vetovoiman vaikutus kappaleen liikerataan
+         */
         return this._velocity.add(grav)
 
     }
@@ -412,6 +420,8 @@ class CelestialBody {
      * x,y, speed, direction, radius, name, mass = 1
      */
     update = (vec) => {
+
+
 
         // lasketaan parametrin välittämän kappaleen vaikutus liikerataan
         let newVelocity = this.gravitateTo(vec)

@@ -8,16 +8,70 @@ export const D3Gravity = () => {
 
     let svg;
     let gElem;
-    let circles;
+    let previewElem;
 
-    let data = []
+    let circles;
+let previewDots; 
+
+    let data = [];
+    let preview = []
+
     let width = 200;
     let height = 200;
     let margin = {top: 10, right: 10, bottom: 10, left: 10};
 
     let updateData;
     let updateHeight;
+    let updatePreview;
     let updateWidth;
+
+    const drawPlanets = () => {
+ 
+        circles = gElem
+            .selectAll(".planets > circle")
+            .data(data)
+
+        circles
+                .attr("cx", d => d.getVector().getX())
+                .attr("cy", d => d.getVector().getY())
+        
+        circles
+            .enter()
+            .append("circle")
+                .style("stroke", "none")
+                .style("fill", d => d.getColor())
+                .attr("r", d => d.getRadius())
+                .attr("cx", d => d.getVector().getX())
+                .attr("cy", d => d.getVector().getY());
+
+    }
+
+    const drawPreviewDots = () => {
+
+        var t = d3.transition()
+            .duration(750)
+            .ease(d3.easeLinear);
+
+        previewDots = previewElem
+            .selectAll(".preview > circle")
+            .data(preview);
+
+        previewDots
+            .transition(t)
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+
+        previewDots
+            .enter()
+            .append("circle")
+                .style("stroke", "none")
+                .style("fill", d => d.color)
+                .attr("r", 1)
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+
+    }
+
 
     function chart(selection){
 
@@ -29,34 +83,41 @@ export const D3Gravity = () => {
             svg = d3
                 .select(this)
                 //.append('svg')
-                .attr("viewBox", [0,0, width, height])
+                .attr("viewBox", [-width, -height, 3 * width, 3 * height])
+                //.attr("viewBox", [0,0, width, height])
 
+            /*
+             * Planeettojen kiertoratojen esikatselu pisteille omistettu kerros
+             */
+            previewElem = svg
+                .append('g')
+                .classed("preview", true)
+                .attr('transform', ` translate(${width/2},${height/2})`);
+
+            drawPreviewDots();
+
+            /*
+             * Planeetat
+             */
             gElem = svg
                 .append('g')
-                .attr('transform', ` translate(${width/2},${height/2})`)
+                .classed("planets", true)
+                .attr('transform', ` translate(${width/2},${height/2})`);
 
-            circles = gElem
-                .selectAll("circle")
-                .data(data)
-                .enter()
-                .append("circle")
-                    .style("stroke", "none")
-                    .style("fill", d => {console.log(d.getColor()); return d.getColor()})
-                    .attr("r", d => d.getRadius())
-                    .attr("cx", d => d.getVector().getX())
-                    .attr("cy", d => d.getVector().getY())
+            drawPlanets();
+
 
             updateData = function() {
-
-                circles
-                    .data(data)
-                        .attr("r", d => d.getRadius())
-                        .attr("cx", d => d.getVector().getX())
-                        .attr("cy", d => d.getVector().getY())
-
+                drawPlanets();
             }
 
             updateHeight = function() {}
+
+            updatePreview = function() {
+               drawPreviewDots();                       
+            }
+
+
             updateWidth = function() {}
 
         })
@@ -84,6 +145,24 @@ export const D3Gravity = () => {
         if(typeof updateHeight === 'function')
             updateHeight();
    
+        return chart
+
+    }
+
+    /*
+     * Asetetaan / päivitetään planeettojen ratojen esikatselunäkymä
+     *
+     *  
+     */
+    chart.preview = function(val){
+
+        if(!arguments.length) return preview;
+
+        preview = val;
+
+        if(typeof updatePreview === 'function')
+            updatePreview();
+
         return chart
 
     }

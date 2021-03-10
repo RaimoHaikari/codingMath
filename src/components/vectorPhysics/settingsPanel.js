@@ -155,11 +155,4 @@ const SettingsPanel = () => {
     );
 };
 
-/*
-            {particleCount()}
-            {rangeWidth()}
-            {rangeHeight()}
-
-*/
-
 export default SettingsPanel;
