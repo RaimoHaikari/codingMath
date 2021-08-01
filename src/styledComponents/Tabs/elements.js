@@ -1,10 +1,20 @@
 import styled from "styled-components";
 
+export const H3 = styled.h3`
+    font-size: 1em;
+    font-weight: bold;    
+`;
+
 export const Input = styled.input``;
 
 export const Label = styled.label`
-    padding: 10px;
-    background: #e2e2e2;
+    padding: 5px;
+    margin: 0px;
+    background: #d7d3cf;
+
+    &:hover {
+        cursor: pointer;
+    }
 `;
 
 export const Content = styled.div`
@@ -21,11 +31,11 @@ export const Container = styled.div`
     display: flex;
     flex-wrap: wrap;
 
-    max-width: 95%;
+    max-width: 100%;
     margin: 2px;
     padding: 2px;
 
-    border: 1px solid red;
+    background-color: #f3f2f1;
 
     
     ${Input} {
@@ -33,32 +43,12 @@ export const Container = styled.div`
     }
 
     ${Input}:checked + ${Label} {
-        background-color: #2196f3;
+        background-color: #fff;
     }
 
     ${Input}:checked + ${Label} + ${Content} {
+        background-color: white;
         display: block;
     }
     */
-
-    /* 
-     * kun valittu, etsii seuraavaa elementtiä jonka pitää olla 
-     * LABEL jotta toimisi
-     * 
-     *  + ${Content}
-    
-    ${Input}:checked + ${Label} {
-        display: block;
-        background-color: red;
-    }
-    */
 `;
-
-
-
-
-export const H2 = styled.h2`
-    font-size: 1.25em;
-`;
-
-export const P = styled.p``;

@@ -80,6 +80,7 @@ class Vector {
     setLength = (length) => {
         let angle = this.getAngle();
 
+
         return new Vector (
             Math.cos(angle) * length,
             Math.sin(angle) * length
@@ -142,7 +143,6 @@ class Partile {
             .setLength(speed)
             .setAngle(direction)
             
-
         this._gravity = new Vector(0, 0.1)
 
         this._color = color
@@ -183,6 +183,96 @@ class Partile {
             this._velocity.getAngle(),
             this._color
         )
+    }
+
+}
+
+class Bouncer extends Partile {
+
+    constructor(x,y, speed, direction, width, height, color, offset) {
+      super(x,y, speed, direction, color);
+
+      this._width = width;
+      this._height = height;
+
+      this._offset = offset;
+
+      this._radius = 10;
+    }
+
+    /*
+     *
+     */
+    doTheBounce = () => {
+
+        const newY = 0 + Math.sin(this._velocity.getAngle()) * this._offset;
+        const newAngle = this._velocity.getAngle() + this._velocity.getLength();
+
+        return new Bouncer(
+            this._position.getX(), 
+            newY, 
+            this._velocity.getLength(), 
+            newAngle,
+            this._width,
+            this._height,
+            this._color, 
+            this._offset
+        );;
+
+    }
+
+    /* 
+     *
+     */
+    accelerate = () => {
+
+        let halfOfWidth = this._width / 2;
+        let halfOfHeight = this._height / 2;
+
+        let newPosition = this._position.add(this._velocity)
+        let newVelocity = this._velocity;
+
+        /*
+         * X - Akselin suuntainen tarkistus & korjaus
+         */
+        if(newPosition.getX() + this._radius > halfOfWidth) {
+            newPosition = newPosition.setX(halfOfWidth - this._radius);
+            newVelocity = newVelocity.setX(newVelocity.getX() * -1)
+        }
+
+        if(newPosition.getX() - this._radius < -halfOfWidth) {
+            newPosition = newPosition.setX(-halfOfWidth + this._radius);
+            newVelocity = newVelocity.setX(newVelocity.getX() * -1)
+        }
+
+        /*
+         * Y - akselin suuntainen tarkistus & korjaus
+         */
+        if(newPosition.getY() + this._radius > halfOfHeight) {
+            newPosition = newPosition.setY(halfOfHeight - this._radius);
+            newVelocity = newVelocity.setY(newVelocity.getY() * -1)
+        }
+
+        if(newPosition.getY() - this._radius < -halfOfHeight) {
+            newPosition = newPosition.setY(-halfOfHeight + this._radius);
+            newVelocity = newVelocity.setY(newVelocity.getY() * -1)
+        } 
+
+        return new Bouncer(
+            newPosition.getX(),
+            newPosition.getY(),
+            newVelocity.getLength(),
+            newVelocity.getAngle(),
+            this._width,
+            this._height,
+            this._color,
+            this._offset
+        )
+
+    }
+
+    getRadius = () => {
+        return this._radius;
     }
 
 }
@@ -278,9 +368,6 @@ class Ship {
             newPosition = newPosition.setY(uusiY)
         }
 
-            
-
-    
         return new Ship(
             newPosition.getX(),
             newPosition.getY(),
@@ -421,8 +508,6 @@ class CelestialBody {
      */
     update = (vec) => {
 
-
-
         // lasketaan parametrin välittämän kappaleen vaikutus liikerataan
         let newVelocity = this.gravitateTo(vec)
         let newPosition = this._position.add(this._velocity)
@@ -444,8 +529,9 @@ class CelestialBody {
 }
 
 export {
-    Partile,
+    Bouncer,
     CelestialBody,
+    Partile,
     Ship,
     Vector
 };

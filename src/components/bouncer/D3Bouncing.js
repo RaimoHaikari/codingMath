@@ -3,7 +3,7 @@ import {
     select 
 } from "d3";
 
-export const bouncing = () => {
+export const D3Bouncing = () => {
 
     let svg;
     let gElem;
@@ -27,31 +27,6 @@ export const bouncing = () => {
     let updateHeight;
     let updateWidth;
 
-    function triggerWave(){
-
-
-        /*
-        let y = centerY + Math.sin(angle) * offset;
-        angle += speed
-
-        circle
-            .attr("cy", y)
-        
-        console.log("Count", count)
-
-        if(count < 50){
-            count++
-
-            d3.timeout(triggerWave, 10)
-        } else {
-            return
-        }
-        */
-        
-        
-
-    }
-
 
     function chart(selection){
 
@@ -71,30 +46,25 @@ export const bouncing = () => {
 
             circle = gElem
                 .selectAll("circle")
-                .data(data)
+                .data([data])
                 .enter()
                 .append("circle")
-                    .attr("cy", centerY)
-                    .attr("cx", centerX)
-                    .attr("r", 20)
-
-
-                /*
-            gElem
-                .append("rect")
-                    .attr("width", 50)
-                    .attr("height", 50)
-                    */
+                    .attr("cy", d => d.getVector().getY())
+                    .attr("cx", d => d.getVector().getX())
+                    .attr("r", d => d.getRadius())
+                    .attr("fill", d => d.getColor())
             
-
-            triggerWave()
-
             updateData = function() {
 
-                circle
-                    .attr("cy", centerY)
-                    
+                circle = gElem
+                    .selectAll("circle")
+                    .data([data])
 
+                circle
+                    .attr("cy", d => d.getVector().getY())
+                    .attr("cx", d => d.getVector().getX())
+                    .attr("fill", d => d.getColor())
+                    
             }
 
             updateHeight = function() {}

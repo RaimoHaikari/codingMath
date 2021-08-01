@@ -1,7 +1,1 @@
-export { default as Hupu } from './Hupu'
-export { default as IlotulitusRaketti } from './IlotulitusRaketti'
-export { default as Lahtikko } from './Lahtikko'
-export { default as Lupu } from './Lupu'
-export { default as Sprial } from './Sprial'
-export { default as Tahti } from './Tahti'
-export { default as Tupu } from './Tupu'
+export { default as Hero } from './Hero'

@@ -45,6 +45,7 @@
     ]
   },
   "devDependencies": {
+    "@svgr/cli": "^5.5.0",
     "redux-devtools-extension": "^2.13.8"
   }
 }

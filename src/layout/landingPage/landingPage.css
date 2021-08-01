@@ -1,0 +1,12 @@
+DIV.svgHolder {
+	display: flex;
+	justify-content: center;
+
+    /* height: 600px; */
+    /* width: 400px; */
+    margin: 1px;
+}
+
+SVG {
+    border: 1px solid green; 
+}

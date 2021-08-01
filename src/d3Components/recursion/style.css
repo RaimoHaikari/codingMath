@@ -1,0 +1,13 @@
+SVG.rose{
+    background-color: black;
+}
+
+circle {
+    stroke: white;
+    stroke-width: 1px;
+    fill: navy;
+}
+
+.stop1 { stop-color: red; }
+.stop2 { stop-color: black; }
+.stop3 { stop-color: blue; }

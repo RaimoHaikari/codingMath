@@ -66,7 +66,7 @@ let previewDots;
             .append("circle")
                 .style("stroke", "none")
                 .style("fill", d => d.color)
-                .attr("r", 1)
+                .attr("r", 2)
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y)
 

@@ -4,7 +4,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {updateCelestialBodySettings} from "../../reducers/gravitationReducer"
 
 import Slider from "../slider";
-import Tab from "./tab"
+import Tab from "./tab";
 
 import {
     Container
@@ -20,6 +20,27 @@ const Tabs = (props) => {
 
     const {celestialBodies} = useSelector(state => state.gravitation)
 
+    /*
+     * Format number to always show 2 decimal places
+     * - https://stackoverflow.com/questions/6134039/format-number-to-always-show-2-decimal-places
+     */
+    const roundTo = (num) => (Math.round(num * 100) / 100).toFixed(0);
+
+    /*
+     * How can I get sin, cos, and tan to use degrees instead of radians?
+     * - https://stackoverflow.com/questions/9705123/how-can-i-get-sin-cos-and-tan-to-use-degrees-instead-of-radians
+     */
+    const toDegrees = (angle) => {
+        return angle * (180 / Math.PI);
+    }
+
+    const toRadians = (angle) => {
+        return angle * (Math.PI / 180);
+    }
+
+    /*
+     *
+     */
     const direction = (cb) => {
 
         return (
@@ -28,16 +49,42 @@ const Tabs = (props) => {
                     dispatch(updateCelestialBodySettings({
                         name: cb.name,
                         setting: 'direction',
-                        value: parseFloat(value)                       
+                        value: toRadians(parseFloat(value))                       
                     }))
                 }}
                 color="#0074D9"
                 step={0.1}
-                minValue = {cb.directionMin}
-                value = {cb.direction}
-                maxValue = {cb.directionMax}
-                name = "Speed"  
-                id = {`speed-${cb.name}`}           
+                minValue = {roundTo(toDegrees(cb.directionMin))}
+                value = {roundTo(toDegrees(cb.direction))}
+                maxValue = {roundTo(toDegrees(cb.directionMax))}
+                name = "Direction"  
+                id = {`direction-${cb.name}`}           
+            />
+        );
+
+    }
+
+    /*
+     *
+     */
+    const mass = (cb) => {
+
+        return (
+            <Slider 
+                changeHandler = {(value) => {
+                    dispatch(updateCelestialBodySettings({
+                        name: cb.name,
+                        setting: 'mass',
+                        value: parseInt(value)                      
+                    }))
+                }}
+                color="#0074D9"
+                step={1}
+                minValue = {cb.massMin}
+                value = {cb.mass}
+                maxValue = {cb.massMax}
+                name = "Mass"  
+                id = {`mass-${cb.name}`}           
             />
         );
 
@@ -69,20 +116,33 @@ const Tabs = (props) => {
 
     }
 
+    const sEtD = (cb) => {
+        return (
+            <>  
+                {speed(cb)}
+                {direction(cb)}
+            </>
+        )
+    }
+
     return (
         <Container>
             {
                 celestialBodies
-                    .filter(cb => cb.name !== "sun")
                     .map((cb,index) => {
                         return (
                             <Tab 
+                                checked = {index===0}
                                 key={index}
                                 name={cb.name}
+                                icon={cb.icon}
                                 changeHandler = {() => {return null}}
                             >
-                                 {speed(cb)}
-                                 {direction(cb)}
+                                {
+                                    cb.name !== "Eridanus"
+                                    ? sEtD(cb)
+                                    : mass(cb)
+                                }
                             </Tab>
                         )
                     })

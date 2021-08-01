@@ -71,15 +71,5 @@ const Navbar = () => {
     );
 };
 
-/*
-
-            <Link style={padding} to="/">Home</Link>
-            <Link style={padding} to="/flies">Kärpäset</Link>
-            <Link style={padding} to="/vector">Ilotulitus</Link>
-            <Link style={padding} to="/acceleration">Acceleration</Link>
-            <Link style={padding} to="/gravity">Gravity</Link>
-            <Link style={padding} to="/testi">Testarea</Link>
-
-*/
 
 export default Navbar;

@@ -1,21 +1,33 @@
 import React from 'react';
 
-import Header from '../../components/frontPage/header'
-import Featured from '../../components/frontPage/featured';
-import Products from '../../components/frontPage/products';
+import Hero from "./Hero"
+import Testi from "./Testi"
 
-const LandingPage = () => {
+import './landingPage.css';
 
-    return (
-        <>
+/*
             <Header />
             <main>
                 <Featured />
                 <Products />
             </main>
-        </>
+*/
+const LandingPage = () => {
+
+    return (
+        <div className="svgHolder">
+            <Hero />
+        </div>
     );
 
 };
+
+/*
+      viewBox="0 0 396.87 171.98"
+      xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="xMidYMid meet"
+      {...props}
+
+*/
 
 export default LandingPage;

@@ -10,6 +10,22 @@
     flex: 1;
 }
 
-svg {
-    /* border: 1px solid red; */
+.stop1 { stop-color: red; }
+.stop2 { stop-color: black; stop-opacity: 0; }
+.stop3 { stop-color: blue; }
+
+.stopRed {
+    stop-color:red;
+    stop-opacity: 1;
 }
+
+.stopYellow {
+    stop-color: yellow;
+    stop-opacity: 1;
+}
+
+.stopGreen {
+    stop-color:green;
+    stop-opacity: 1;
+}
+

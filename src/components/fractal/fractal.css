@@ -1,0 +1,23 @@
+.triangle, .koch{
+    stroke: black;
+    fill: white;
+}
+
+.last_iteration {
+    fill: black;
+}
+
+.fractalTree, .pythagorean {
+    fill: orange;
+    stroke: red;
+}
+
+.fooBar {
+    fill: none;
+    stroke: navy;
+}
+
+#MyRect {
+    stroke: black;
+    fill: none;
+  }

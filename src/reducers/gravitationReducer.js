@@ -1,5 +1,13 @@
 import {CelestialBody, Vector} from "../services/vector";
 
+import {Caleuche, Saffar, Sun} from "../iconComponents/Planets";
+
+/*
+* Format number to always show 2 decimal places
+* - https://stackoverflow.com/questions/6134039/format-number-to-always-show-2-decimal-places
+*/
+const roundTo = (num) => (Math.round(num * 100) / 100).toFixed(0);
+
 function getRandomColor() {
 
     var letters = '0123456789ABCDEF';
@@ -8,20 +16,16 @@ function getRandomColor() {
       color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
-
 }
 
-/*
- *     {x: 250,y: 0,speed: 20, direction: -Math.PI, radius: 6, name: "jupiter", mass: 2, color: "#3f67cb"}
- */
 const celestialBodies = [
-    {x: 0,y: 0,speed: 0, direction: 0, radius: 15, name: "sun", mass: 20000, color:"#f7e617"},
-    {x: 200,y: 0,speedMin: 2, speed: 10, speedMax: 20, directionMin: -Math.PI, direction: -Math.PI / 2, directionMax: Math.PI, radius: 5, name: "earth", mass: 1, color: "#3f67cb"},
-    {x: 250,y: 0,speedMin: 2, speed: 20, speedMax: 30, directionMin: -Math.PI, direction: -Math.PI /3, directionMax: Math.PI,  radius: 6, name: "jupiter", mass: 2, color: "#ff2211"}
+    {x: 0,y: 0,speed: 0, direction: 0, radius: 20, name: "Eridanus", icon: <Sun />, massMin: 5000, mass: 20000, massMax: 50000, color:"#f7e617"},
+    {x: 200,y: 0,speedMin: 2, speed: 10, speedMax: 20, directionMin: -Math.PI, direction: -Math.PI / 2, directionMax: Math.PI, radius: 5, name: "Saffar", icon: <Saffar />, mass: 5, color: "#3f67cb"},
+    {x: 250,y: 0,speedMin: 2, speed: 20, speedMax: 30, directionMin: -Math.PI, direction: -Math.PI /3, directionMax: Math.PI,  radius: 10, name: "Caleuche", icon: <Caleuche />, mass: 10, color: "#ff2211"}
 ]
 
 const getInitialHeight = () => 500
-const getInitialNumberOfPreviewSteps= () => 100
+const getInitialNumberOfPreviewSteps= () => 500
 const getInitialWidth = () => 600
 
 /* 
@@ -43,8 +47,8 @@ const getData = (cBodies) => {
  */
 const getPreviewData = (data, depth) => {
 
-    let sun = data.filter(d => d.getName() === "sun");
-    let planets =  data.filter(d => d.getName() !== "sun");
+    let sun = data.filter(d => d.getName() === "Eridanus");
+    let planets =  data.filter(d => d.getName() !== "Eridanus");
 
     let track = []; // Väliaikainen varasto, johon sijainnit talletetaan
     let preview = []
@@ -70,16 +74,22 @@ const getPreviewData = (data, depth) => {
      * - esikatseluun tarvitaan vain koordinaattitietoa, joten napataan nämä
      *   palautettavaan taulukkoon
      */
+    let i = 0;
     for (const step of track){
         for(const particle of step){
 
             let pos = particle.getVector();
-            preview.push({
-                x: pos.getX(),
-                y: pos.getY(),
-                color: particle.getColor()
-            })
+
+            if(i % 5 === 0){
+                preview.push({
+                    x: pos.getX(),
+                    y: pos.getY(),
+                    color: particle.getColor()
+                })
+            }
         }
+
+        i++;
     }
 
     return preview;
@@ -105,8 +115,8 @@ const initialState = {
 
 const calculateNewState = (state) => {
 
-    let sun = state.data.filter(d => d.getName() === "sun");
-    let planets =  state.data.filter(d => d.getName() !== "sun");
+    let sun = state.data.filter(d => d.getName() === "Eridanus");
+    let planets =  state.data.filter(d => d.getName() !== "Eridanus");
 
     let updatedPlanets = planets.map(cb => cb.update(sun[0]))
 
@@ -137,7 +147,12 @@ const changeCBSettings = (state, data) => {
         }
 
         if(a.name === data.name) {
+
             a[data.setting] = data.value
+
+            if(a.name === "Eridanus"){
+ a['radius'] = roundTo(data.value/1000);
+            }
         }
 
         return a;
