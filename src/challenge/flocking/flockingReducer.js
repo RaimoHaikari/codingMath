@@ -1,7 +1,7 @@
 import { randomBates } from "d3";
 import {Boid, Vector} from "./Vector"
 
-
+// {x: 10.629491010233924,y: 20.27021022090776, speed: 5, direction: 2.183530491580548, id: 'no1'},
 const MOCKDATA = [
     {x: 10.629491010233924,y: 20.27021022090776, speed: 5, direction: 2.183530491580548, id: 'no1'},
     {x: 93.57427297010335 ,y: 19.2834088776445, speed: 5 , direction: 0.7088897208315498, id: 'no2'},
@@ -22,168 +22,29 @@ const WIDTH = 500
 // Circle (Boid) radius
 const BOID_RADIUS = 4;
 
-const NUMBER_OF_BOIDS = 25
+const NUMBER_OF_BOIDS = 50
 
-const PERCEPTIONRADIUS = 50
+const PERCEPTIONRADIUS = 100
 const UNDER_OBSERVATION = 0
 
-
 /*
- * Asetetaan bitti onko objekti aktiivisen objektin tarkkailualueella
+ * Initial values: Alignment, cohesion, separation 
  */
-const highlightPerceived = (activeBoid, boids, perceptionRadius) => {
+const INITIAL_ALIGNMENT_VALUES =  {min: 0.1, value: 5, max: 10, step: 0.1}
+const INITIAL_COHESION_VALUES =  {min: 0.1, value: 5, max: 10, step: 0.1}
+const INITIAL_SEPARATION_VALUES =  {min: 0.1, value: 5, max: 10, step: 0.1}
 
-    console.log("........ highlightPerceived .........")
+const INITIAL_PERCEPTION_RADIUS =  {min: 10, value: 50, max: 100, step: 1}
 
-    return boids.map(boid => {
-
-        if(boid.getId() === activeBoid.getId())
-            return boid.setPerceived(false)
-
-        let dist = Vector.distanceOf(activeBoid.getVector(), boid.getVector());
-
-        
-        if(dist <= perceptionRadius)
-            console.log(' . ', boid.getId(), dist)
-            
-
-        return boid.setPerceived(dist <= perceptionRadius)
-
-    })
-
-}
-
-let seed = 1;
-
-function random() {
-    var x = Math.sin(seed++) * 10000;
-    return x - Math.floor(x);
-}
-
-const getMockData = (width, height, r, active, perceptionRadius) => {
-
-    let data = []
-
-    let activeBoid = null;
-
-    //{x: 10.629491010233924,y: 20.27021022090776, speed: 5, direction: 2.183530491580548, id: 'no1'},
-    for(var i  = 0; i < MOCKDATA.length; i++){
-
-        let isActive = active === null
-                        ? false
-                        : i === active
-                            ? true
-                            : false
-
-        let boid = new Boid(
-            MOCKDATA[i].x,
-            MOCKDATA[i].y, 
-            MOCKDATA[i].speed,
-            MOCKDATA[i].direction, 
-            `b-${i}`,
-            r,
-            width,
-            height,
-            isActive
-        ) 
-
-        data.push(boid) 
-    }
-
-    if(activeBoid !== null)
-        data = highlightPerceived(activeBoid, data, perceptionRadius)
-
-    return data
-}
-
-/*
- * Esitettävien objektien alustus
- * - tarkkailtava objekti ilmoitetaan indeksi -numerolla.
- *   (Myöhemmin tunnistus isUnderObservation -metodilla)
- */
-const getData = (n, width, height, r, active, perceptionRadius) => {
-
-    let seeded = false
-
-    let data = []
-    let activeBoid = null;
-
-    for(var i = 0; i < n; i++){
+const ID_PREFIX = 'b-';
 
 
-        let boid
-
-        let isActive = active === null
-                        ? false
-                        : i === active
-                            ? true
-                            : false
-
-        if(seeded){
-
-            let rnd = random()
-
-            boid = new Boid(
-                -0.25 * width + rnd * 0.5 * width,
-                -0.25 * height + rnd * 0.5 * height, 
-                rnd * 5 + 2,
-                rnd * Math.PI * 2, 
-                `b-${i}`,
-                r,
-                width,
-                height,
-                isActive
-            )
-        } else {
-
-            boid = new Boid(
-                -0.25 * width + Math.random() * 0.5 * width,
-                -0.25 * height + Math.random() * 0.5 * height, 
-                Math.random() * 5 + 2,
-                Math.random() * Math.PI * 2, 
-                `b-${i}`,
-                r,
-                width,
-                height,
-                isActive
-            )    
-
-        }
-
-        if(isActive)
-            activeBoid = boid
-
-        data.push(boid) 
-               
-    }
-
-    if(activeBoid !== null)
-        data = highlightPerceived(activeBoid, data, perceptionRadius)
-
-    return data
-}
-
-/*
+/* 
+ * A L I G N M E N T
  *
- */
-const initialState = {
-    //data: getData(NUMBER_OF_BOIDS, WIDTH, HEIGHT, BOID_RADIUS, UNDER_OBSERVATION, PERCEPTIONRADIUS),
-    data: getMockData(WIDTH, HEIGHT, BOID_RADIUS,UNDER_OBSERVATION, PERCEPTIONRADIUS),
-    isActive: false,
-    perceptionRadius: PERCEPTIONRADIUS,
-    maxForce: {min: 0.1, value: 5, max: 9.9, step: 0.1},
-    maxSpeed: {min: 0.1, value: 5, max: 9.9, step: 0.1},
-    height: HEIGHT,
-    underObservation: UNDER_OBSERVATION,
-    width: WIDTH,
-counter: 0 // SAA POISTAA .. kierroslaskuri
-}
-
-
-/*
  * Alignment: steer towards the average heading of local flockmates
  */
-const align = (current, boids, perceptionRadius,maxForce) => {
+const align = (current, boids, perceptionRadius) => {
 
     let desired = new Vector(0,0);
     let counter = 0;
@@ -210,83 +71,146 @@ const align = (current, boids, perceptionRadius,maxForce) => {
 
     /*
      * Rajataan kurssin korjaus asetuksissa määrättyyn maksimipituuteen
-     */
+     
     if(desired.getLength() > maxForce) {
 //console.log("Rajoitus", current.getId(), desired.getLength(), maxForce)
         desired = desired.setLength(maxForce)
     }
+    */
 
-//desired = desired.setLength(maxForce)
 
     return desired
 
 }
 
 /*
- * R E A C T I O N S   T O W A R D S   A C T I O N S
+ *
  */
-const calculateNewState = (state) => {
+const getDesiredAlignment = (boid, boids, perceptionRadius, maxForce) => {
 
-//console.log('..  calculateNewState  ..')
-    
-    let activeBoid = null;
+    let desiredAlignment = align(
+        boid, 
+        boids, 
+        perceptionRadius
+    )
 
-    let newData = state.data.map(boid => {
-
-        /*
-         * Alignment: steer towards the average heading of local flockmates
-         * 
-         * Huom! Tuloksena vektori, ei kulma & matka...
-         */
-        let desiredVelocity = align(
-            boid, 
-            state.data, 
-            state.perceptionRadius, 
-            state.maxForce.value
-        )
-
-        let desiredCohesion = cohesion (
-            boid, 
-            state.data, 
-            state.perceptionRadius, 
-            state.maxForce.value
-        )
-
-        if(boid.getId() === 'b-0'){
-            console.log("..........................")
-            console.log(boid.getId(), boid.getVector().getX(), boid.getVector().getY(), ' - ', desiredCohesion.getX(), desiredCohesion.getY())    
-        }
-
-//console.log("- desired",boid.getId(), desiredVelocity.getX(), desiredVelocity.getY())
-
-        if(boid.isUnderObservation())
-            activeBoid = boid
-
-
-        return boid.accelerate(desiredVelocity, state.maxSpeed.value)
-    })
-
-    /*
-     * Päivitetään tarvittaessa seurantabitit
-     */
-    if(activeBoid !== null)
-        newData = highlightPerceived(activeBoid, newData, state.perceptionRadius)
-
-        console.log(state.counter)
-    let newCounter = state.counter+1;
-
-    return {
-        ...state,
-        data: newData,
-        counter: newCounter
+    if(desiredAlignment.getLength() > maxForce) {
+        //console.log(": ali E:", desiredAlignment.getLength())
+        desiredAlignment = desiredAlignment.setLength(maxForce)
+        //console.log(": ali J:",  desiredAlignment.getLength())
     }
+
+    //console.log("- ali", desiredAlignment.getX(), desiredAlignment.getY())
+
+    return desiredAlignment
+
 }
 
+
 /*
+ * C O H E S I O N 
+ *
  * Steer to move towards the average position (center of mass) of local flockmates
  * (kulje kohti lähiryhmän keskusta)
+ * - mikäli lähikeskusta ei voida määrittää, palauttaa null
  */
+const cohesionPoint = (current, boids, perceptionRadius) => {
+
+    let desired = new Vector(0,0);
+    let counter = 0;
+
+    /*
+     * Selvitetään lähiympäristön objektit ja lasketaan keskipiste
+     * - huom! operoidaan objektien absoluuttisilla koordinaateilla
+     */
+    for(let other of boids){
+
+        let dist = Vector.distanceOf(current.getVector(), other.getVector());
+
+        if((current.getId() !== other.getId()) && dist < perceptionRadius){
+
+            if(current.getId() === 'b-0101010'){
+                console.log(" ----------",current.getId(),"---------- ")
+                console.log(" diff " , other.getVector().getX(), other.getVector().getY(), `${other.getId()}`)
+                console.log(".........................................")
+             }
+
+
+            desired = desired.add(other.getVector())
+            counter++;
+        }
+    }
+
+    /*
+     * Otetaan keskiarvo, mikäli lähistön kartoituksessa on huomioitu enemmän kuin yksi
+     * Boid -objekti
+     */
+    if(counter > 1) 
+        desired = desired.divide(counter)
+    else
+        desired = null
+
+    return desired
+
+}
+
 const cohesion = (current, boids, perceptionRadius) => {
+
+    let cPoint = cohesionPoint (
+        current, 
+        boids, 
+        perceptionRadius
+    )
+
+    let desiredCohesion = new Vector(0,0);
+
+    if(cPoint !== null) {
+
+        /*
+         * huom! siirrytään absoluuttisista koordinaateista suhteellisiin
+         */
+        desiredCohesion = cPoint.subtract(current.getVector())
+
+        if(current.getId() === 'b-01010101'){
+            console.log(" ----------",current.getId(),"---------- ")
+            console.log(" desired " , desiredCohesion.getX(), desiredCohesion.getY())
+            console.log(".........................................")
+         }
+
+    }
+
+    return desiredCohesion
+
+}
+
+const getDesiredCohesion = (boid, boids, perceptionRadius, maxForce) => {
+
+    /*
+     * Cohesion: steer to move towards the average position (center of mass) of local flockmates
+     */
+     let desiredCohesion = cohesion(
+         boid, 
+         boids, 
+         perceptionRadius       
+     )
+ 
+     /*
+      * Rajataan kurssin korjaus asetuksissa määrättyyn maksimipituuteen
+      */
+     if(desiredCohesion.getLength() > maxForce) {
+         //console.log(": coh E:", desiredCohesion.getLength())
+         desiredCohesion = desiredCohesion.setLength(maxForce)
+         //console.log(": coh J:",  desiredCohesion.getLength())
+     }
+ 
+     return desiredCohesion
+ 
+ }
+
+/*
+ * S E P A R A T I O N
+ */
+const separationPoint = (current, boids, perceptionRadius) => {
 
     let desired = new Vector(0,0);
     let counter = 0;
@@ -298,9 +222,30 @@ const cohesion = (current, boids, perceptionRadius) => {
 
         let dist = Vector.distanceOf(current.getVector(), other.getVector());
 
+        /*
+         * - päinvastaiseen suutaan
+         * - sitä kauemmas, mitä lähempänä naapuri on
+         */
         if((current.getId() !== other.getId()) && dist < perceptionRadius){
-            desired = desired.add(other.getVector())
+
+            /*
+             * Huom! Käsitellään suhteellisia koordinaatteja
+             */
+            let diff = current.getVector().subtract(other.getVector());
+            let porpotional = diff.divide(dist)
+
+ if(current.getId() === 'b-010101'){
+    console.log(" ----------",current.getId(),"---------- ")
+    console.log(" diff " , diff.getX(), diff.getY(), `${other.getId()}`)
+    console.log(" dist " , dist)
+    console.log(" por " , porpotional.getX(), porpotional.getY())
+    console.log(".........................................")
+ }
+
+
+            desired = desired.add(porpotional)
             counter++;
+
         }
     }
 
@@ -308,19 +253,396 @@ const cohesion = (current, boids, perceptionRadius) => {
      * Otetaan keskiarvo, mikäli lähistön kartoituksessa on huomioitu enemmän kuin yksi
      * Boid -objekti
      */
-    if(counter > 1) desired = desired.divide(counter)
-
-    /*
-     * Rajataan kurssin korjaus asetuksissa määrättyyn maksimipituuteen
-     
-    if(desired.getLength() > maxForce) {
-console.log("Rajoitus", current.getId(), desired.getLength(), maxForce)
-        desired = desired.setLength(maxForce)
-    }
-    */
+    if(counter > 1) 
+        desired = desired.divide(counter)
+    else
+        desired = null
 
     return desired
 
+}
+
+const separation = (current, boids, perceptionRadius) => {
+
+    let sPoint = separationPoint (
+        current, 
+        boids, 
+        perceptionRadius
+    )
+
+    let desiredSeparation = (sPoint !== null) ? sPoint : new Vector(0,0);
+
+    return desiredSeparation
+}
+
+/*
+
+       let desiredSeparation = separation(
+        boid, 
+        state.data, 
+        state.perceptionRadius        
+    )
+
+    if(desiredSeparation.getLength() > state.separation.value) {
+        console.log(": sep E:", desiredSeparation.getLength())
+        desiredSeparation = desiredSeparation.setLength(state.separation.value)
+        console.log(": sep J:",  desiredSeparation.getLength())
+    }
+ */
+const getDesiredSeparation = (boid, boids, perceptionRadius, maxForce) => {
+
+    let desiredSeparation = separation(
+        boid, 
+        boids, 
+        perceptionRadius        
+    )
+
+    if(desiredSeparation.getLength() > maxForce) {
+        //console.log(": sep E:", desiredSeparation.getLength())
+        desiredSeparation = desiredSeparation.setLength(maxForce)
+        //console.log(": sep J:",  desiredSeparation.getLength())
+    }
+
+    return desiredSeparation;
+
+}
+
+
+
+/*
+ * Asetetaan bitti onko objekti aktiivisen objektin tarkkailualueella
+ */
+const highlightPerceived = (activeBoid, boids, alignmentSettings, cohesionSettings, separationSettings, perceptionRadius) => {
+
+    //console.log(".. hP..")
+    //console.log(cohesionSettings)
+
+    return boids.map(boid => {
+
+        if(boid.getId() === activeBoid.getId()){
+
+            let desiredCohesion = getDesiredCohesion(boid, boids, perceptionRadius, cohesionSettings.value)
+//console.log("- coh",desiredCohesion.getX(), desiredCohesion.getY())
+
+            let desiredAlignment = getDesiredAlignment(boid, boids, perceptionRadius, alignmentSettings.value)
+
+            let desiredSeparation = getDesiredSeparation(boid, boids, perceptionRadius, separationSettings.value)
+//console.log("- sepa", desiredSeparation.getX(), desiredSeparation.getY())
+
+            return boid
+                .setPerceived(false)
+                .setCohesionPoint(desiredCohesion)
+                .setAlignmentPoint(desiredAlignment)
+                .setSeparationPoint(desiredSeparation)
+        }
+
+        let dist = Vector.distanceOf(activeBoid.getVector(), boid.getVector());
+
+        /*
+         * @todo: TÄNNE TARKENNUS....
+         * 
+         */
+        return boid.setPerceived(dist <= perceptionRadius)
+
+    })
+
+}
+
+let seed = 1;
+
+function random() {
+    var x = Math.sin(seed++) * 10000;
+    return x - Math.floor(x);
+}
+
+const getMockData = (width, height, r, active, perceptionRadius, alignmentSettings, cohesionSettings, separationSettings) => {
+
+    let data = []
+
+    let activeBoid = null;
+
+    for(var i  = 0; i < MOCKDATA.length; i++){
+
+        let isActive = active === null
+                        ? false
+                        : i === active
+                            ? true
+                            : false
+
+        let boid = new Boid(
+            MOCKDATA[i].x,
+            MOCKDATA[i].y, 
+            MOCKDATA[i].speed,
+            MOCKDATA[i].direction, 
+            `${ID_PREFIX}${i}`,
+            r,
+            width,
+            height,
+            isActive
+        ) 
+
+        if (isActive)
+            activeBoid = boid
+
+        data.push(boid) 
+    }
+
+    if(activeBoid !== null){
+        data = highlightPerceived(activeBoid, data, alignmentSettings, cohesionSettings, separationSettings, perceptionRadius.value)
+    }
+
+    return data
+}
+
+/*
+ * Esitettävien objektien alustus
+ * - tarkkailtava objekti ilmoitetaan indeksi -numerolla.
+ *   (Myöhemmin tunnistus isUnderObservation -metodilla)
+ */
+const getData = (n, width, height, r, active, perceptionRadius, alignmentSettings, cohesionSettings, separationSettings) => {
+
+    let seeded = false
+
+    let data = []
+    let activeBoid = null;
+
+    for(var i = 0; i < n; i++){
+
+
+        let boid
+
+        let isActive = active === null
+                        ? false
+                        : i === active
+                            ? true
+                            : false
+
+        if(seeded){
+
+            let rnd = random()
+
+            boid = new Boid(
+                -0.25 * width + rnd * 0.5 * width,
+                -0.25 * height + rnd * 0.5 * height, 
+                rnd * 5 + 2,
+                rnd * Math.PI * 2, 
+                `${ID_PREFIX}${i}`,
+                r,
+                width,
+                height,
+                isActive
+            )
+        } else {
+
+            boid = new Boid(
+                -0.25 * width + Math.random() * 0.5 * width,
+                -0.25 * height + Math.random() * 0.5 * height, 
+                Math.random() * 5 + 2,
+                Math.random() * Math.PI * 2, 
+                `${ID_PREFIX}${i}`,
+                r,
+                width,
+                height,
+                isActive
+            )    
+
+        }
+
+        if(isActive)
+            activeBoid = boid
+
+        data.push(boid) 
+               
+    }
+
+    if(activeBoid !== null){
+        data = highlightPerceived(activeBoid, data, alignmentSettings, cohesionSettings, separationSettings, perceptionRadius.value)
+    }
+
+    return data
+}
+
+/*
+ * 
+ */
+const initialState = {
+    //data: getData(NUMBER_OF_BOIDS, WIDTH, HEIGHT, BOID_RADIUS, UNDER_OBSERVATION, INITIAL_PERCEPTION_RADIUS, INITIAL_ALIGNMENT_VALUES, INITIAL_COHESION_VALUES, INITIAL_SEPARATION_VALUES),
+    data: getMockData(WIDTH, HEIGHT, BOID_RADIUS, UNDER_OBSERVATION, INITIAL_PERCEPTION_RADIUS, INITIAL_ALIGNMENT_VALUES, INITIAL_COHESION_VALUES, INITIAL_SEPARATION_VALUES),
+    isActive: false,
+    perceptionRadius: INITIAL_PERCEPTION_RADIUS,
+    maxForce: {min: 0.1, value: 5, max: 10, step: 0.1},
+    maxSpeed: {min: 0.1, value: 5, max: 10, step: 0.1},
+    alignment: INITIAL_ALIGNMENT_VALUES,
+    separation: INITIAL_SEPARATION_VALUES,
+    cohesion: INITIAL_COHESION_VALUES,
+    height: HEIGHT,
+    underObservation: UNDER_OBSERVATION,
+    width: WIDTH,
+counter: 0 // SAA POISTAA .. kierroslaskuri
+}
+
+
+
+/*
+ * R E A C T I O N S   T O W A R D S   A C T I O N S
+ */
+const calculateNewState = (state) => {
+
+    
+    let activeBoid = null;
+
+    let newData = state.data.map(boid => {
+
+        let desiredAlignment = getDesiredAlignment(boid, state.data, state.perceptionRadius.value, state.alignment.value)
+        let desiredCohesion = getDesiredCohesion(boid, state.data, state.perceptionRadius.value, state.cohesion.value)
+        let desiredSeparation = getDesiredSeparation(boid, state.data, state.perceptionRadius.value, state.separation.value)
+   
+
+        if(boid.isUnderObservation())
+            activeBoid = boid
+
+        let allTogether = new Vector(0,0)
+            .add(desiredCohesion)
+            .add(desiredAlignment)
+            .add(desiredSeparation)
+
+        if(boid.getId() === 'b-0'){
+            console.log(" ----------",boid.getId(),"---------- ")
+            console.log(" ali " , desiredAlignment.getX(), desiredAlignment.getY())
+            console.log(" sepa " , desiredSeparation.getX(), desiredSeparation.getY())
+            console.log(" cohe " , desiredCohesion.getX(), desiredCohesion.getY())
+            console.log(" ALL " , allTogether.getX(), allTogether.getY(), allTogether.getLength())
+            console.log(".........................................")
+        }
+
+        boid = boid
+            .accelerate(allTogether, state.maxSpeed.value)
+
+
+        if(boid.getId() === 'b-010101'){
+            console.log(" - ", allTogether.getX(), allTogether.getY())
+            console.log("Velo", boid.getVelocity().getX(), boid.getVelocity().getY())
+        }
+            
+
+        //return boid.accelerate(desiredVelocity, state.maxSpeed.value)
+        return boid
+    })
+
+    /*
+     * Päivitetään tarvittaessa seurantabitit
+     */
+    if(activeBoid !== null)
+        newData = highlightPerceived(activeBoid, newData, state.alignment, state.cohesion,state.separation,state.perceptionRadius.value)
+
+    let newCounter = state.counter+1;
+
+    return {
+        ...state,
+        data: newData,
+        counter: newCounter
+    }
+}
+
+/*
+ */
+const toggleTrackingState = (data, active, alignmentSettings, cohesionSettings, separationSettings, perceptionRadius, maxForce) => {
+
+    let activeBoid = null;
+
+    let trackingOn = active === null?false:true;
+
+    let newData = data.map(boid => {
+
+        /* Selvitetään id-numeron perusteella objektin järjestysnumero */
+        let no = parseInt(boid.getId().slice(ID_PREFIX.length));
+
+        let isActive = active === null
+                        ? false
+                        : no === active
+                            ? true
+                            : false
+
+        if(isActive){
+            activeBoid = boid
+            boid = boid.setUnderObservation(true)
+        } else {
+            boid = boid
+                .setUnderObservation(false)
+                .setPerceived(false)
+        }
+
+        return boid
+
+    })
+
+    /*
+     * Päivitetään tarvittaessa seurantabitit
+     */
+    if(activeBoid !== null)
+        newData = highlightPerceived(activeBoid, newData, alignmentSettings, cohesionSettings, separationSettings, perceptionRadius)
+
+    return newData
+
+}
+
+/*
+
+            const updatedSpeed = {
+                ...state.maxSpeed,
+                value: action.data.value
+            }
+
+            return {
+                ...state,
+                maxSpeed: updatedSpeed
+            }
+
+
+ */
+const setPerceptionRadius = (val, state) => {
+
+    const updatedPerceptionRadius = {
+        ...state.perceptionRadius,
+        value: val
+    }
+
+    let newData = toggleTrackingState(
+        state.data, 
+        state.underObservation,
+        state.alignment,
+        state.cohesion,
+        state.separation,
+        updatedPerceptionRadius.value, 
+        state.maxForce,
+    )
+
+    return {
+        ...state,
+        perceptionRadius: updatedPerceptionRadius,
+        data: newData
+    }
+}
+
+const setTrackingState = (state) => {
+
+    let newTrackingState = state.underObservation===null?0:null;
+
+    let newData = toggleTrackingState(
+        state.data, 
+        newTrackingState, 
+        state.alignment,
+        state.cohesion,
+        state.separation,
+        state.perceptionRadius.value, 
+        state.maxForce,
+    )
+
+    return {
+        ...state,
+        underObservation: newTrackingState,
+        data: newData
+    }
 }
 
 
@@ -362,7 +684,7 @@ export const animate = (isActive) => {
                     data: {}
                 })
     
-            }, 250)
+            }, 100)
 
             // kirjataan timerin käynnistys muistiin
             dispatch({
@@ -404,11 +726,56 @@ export const toggleActiveState = () => {
 }
 
 
+/*
+ * Kytketään animaation käynnistävä muuttuja joko päälle tai pois päältä
+ * - muuttuja: isActive
+ */
+export const toggleTracking = () => {
+
+    return dispatch => {
+
+        dispatch({
+            type: 'BOID_TOGGLE_TRACKING',
+            data: {}
+        })
+    }
+}
+
+
+
 export const updateVelocitySpec = (val) => {
 
     return dispatch => {
 
         switch (val.type) {
+
+            case 'alignment':
+
+                dispatch({
+                    type: 'BOID_SET_ALIGNMENT',
+                    data: val
+                })        
+
+                break;
+
+            case 'cohesion':
+
+                dispatch({
+                    type: 'BOID_SET_COHESION',
+                    data: val
+                })
+
+                break;
+
+            case 'separation':
+
+                dispatch({
+                    type: 'BOID_SET_SEPARATION',
+                    data: val
+                })
+
+                break;
+
 
             case 'maxForce':
 
@@ -423,6 +790,15 @@ export const updateVelocitySpec = (val) => {
 
                 dispatch({
                     type: 'BOID_SET_MAX_SPEED',
+                    data: val
+                })        
+    
+                break;
+
+            case 'perceptionRadius':
+
+                dispatch({
+                    type: 'BOID_SET_PERCEPTION_RADIUS',
                     data: val
                 })        
     
@@ -455,6 +831,46 @@ const flockingReducer = (state = initialState, action) => {
                 isActive: newActiveState
             }
 
+        case 'BOID_TOGGLE_TRACKING':
+
+            return setTrackingState(state);
+
+        case 'BOID_SET_ALIGNMENT':
+
+            const updatedAlignment= {
+                ...state.alignment,
+                value: action.data.value
+            }
+            
+            return {
+                ...state,
+                alignment: updatedAlignment
+            }
+
+        case 'BOID_SET_COHESION':
+
+            const updatedCohesion = {
+                ...state.cohesion,
+                value: action.data.value
+            }
+            
+            return {
+                ...state,
+                cohesion: updatedCohesion
+            }
+
+        case 'BOID_SET_SEPARATION':
+
+            const updatedSeparation = {
+                ...state.separation,
+                value: action.data.value
+            }
+            
+            return {
+                ...state,
+                separation: updatedSeparation
+            }        
+
         case 'BOID_SET_MAX_FORCE':
 
             const updatedForce = {
@@ -479,6 +895,10 @@ const flockingReducer = (state = initialState, action) => {
                 maxSpeed: updatedSpeed
             }
 
+        case 'BOID_SET_PERCEPTION_RADIUS':
+
+            return setPerceptionRadius(action.data.value, state);
+     
         default:
             return state;
     }

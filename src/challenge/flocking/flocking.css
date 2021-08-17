@@ -1,0 +1,30 @@
+#alignmentPointID {
+    stroke: rgb(68, 0, 255);
+    visibility: hidden;
+}
+
+#cohesionPointID {
+    stroke: red;
+    visibility: hidden;
+
+}
+
+#separationPointID {
+    stroke: green;
+    visibility: hidden;
+}
+
+#centerPointID {
+    stroke: gray;  
+}
+
+
+g.cohesionPointLayer.hide, g.alignmentPointLayer.hide, g.separationPointLayer.hide {
+    visibility: hidden;
+}
+
+circle.perceptionCircle {
+    stroke :gray;
+    fill: none;
+    stroke-dasharray: 4;
+}

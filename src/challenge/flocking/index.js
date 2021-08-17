@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {createContext, useEffect, useRef} from 'react';
 
 import {useDispatch, useSelector} from "react-redux";
 
@@ -9,7 +9,10 @@ import {
     liikuta, 
     toggleActiveState
 } from "./flockingReducer"
+
 import {d3Flocking} from "./d3Flocking"
+
+import './flocking.css';
 
 const Flocking = () => {
 
@@ -18,18 +21,25 @@ const Flocking = () => {
 
     const dispatch = useDispatch()
 
-    const {activeBoid, counter, data, height, isActive, perceptionRadius, width} = useSelector(state => {
+    /*
+
+     */
+    const {activeBoid, counter, data, displayCohesion, height, isActive, perceptionRadius, width} = useSelector(state => {
 
         // state.flocking
         let flocking = state.flocking;
 
+        let displayCohesion = false;
+
         let activeBoid = flocking.data.filter(b => b.isUnderObservation())
+        if(activeBoid.length === 1 && activeBoid[0].getCohesionPoint() !== null)
+            displayCohesion = true
 
         return {
             ...flocking,
-            activeBoid: activeBoid
+            activeBoid: activeBoid,
+            displayCohesion: displayCohesion
         }
-
 
     });
 
@@ -46,7 +56,7 @@ const Flocking = () => {
             .data(data)
             .height(height)
             .width(width)
-            .perceptionRadius(perceptionRadius)
+            .perceptionRadius(perceptionRadius.value)
             .activeBoid(activeBoid)
 
         select(refElement.current)
@@ -61,6 +71,7 @@ const Flocking = () => {
 
         visFunction.current
             .activeBoid(activeBoid)
+            .perceptionRadius(perceptionRadius.value)
             .data(data)
 
               
@@ -98,11 +109,37 @@ const Flocking = () => {
             console.log('data cleanup')
         }
         
-    }, [data])
+    }, [data, perceptionRadius])
 
+    /*
+<polygon xmlns="http://www.w3.org/2000/svg" points="50,16 85,85 15,85 50,16" fill="none" stroke="black" stroke-width="1.2"/>
+    */
     return (
         <>
-            <div ref={refElement} className="cm-FLOCKING-container" style={{width: "500px", height: '500px'}}>
+            <div className="cm-FLOCKING-container" style={{width: "500px", height: '500px'}}>
+                <svg ref={refElement}>
+                    <defs>
+                        <g id="pointToDisplay">
+                            <line 
+                                x1="-10"
+                                y1="0"
+                                x2="10"
+                                y2="0"
+                                strokeWidth="1"
+                            />
+                                <line 
+                                x1="0"
+                                y1="-10"
+                                x2="0"
+                                y2="10"
+                                strokeWidth="1"
+                            />
+                        </g>
+                        <g id="triangle">
+                            <polygon  points="0,-5 5,5 -5,5 0,-5" strokeWidth="1.2" /> 
+                        </g>
+                    </defs>                    
+                </svg>
             </div>
             <button
                 onClick = {() => dispatch(liikuta())}

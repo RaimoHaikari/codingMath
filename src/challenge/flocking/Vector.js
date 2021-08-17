@@ -121,7 +121,21 @@ class Vector {
  */
 class Boid {
 
-    constructor(x,y, speed, direction, id, radius=4, width, height, underObservation=false, perceived=false){
+    constructor(
+        x,
+        y, 
+        speed, 
+        direction, 
+        id, 
+        radius=4, 
+        width, 
+        height, 
+        underObservation=false, 
+        perceived=false, 
+        alignmentPoint = null, 
+        cohesionPoint=null,
+        separationPoint = null
+        ){
 
         this._position = new Vector(x, y,speed, direction);
 
@@ -136,6 +150,9 @@ class Boid {
         this._width = width;
         this._height = height;
 
+        this._halfOfWidth = this._width / 2;
+        this._halfOfHeight = this._height / 2;
+
         /*
          * D3 graafissa voidaan seurata valitun objektin liikettä,
          * tällöin havaintoetäisyyden sisällä olevat objektit 
@@ -143,6 +160,21 @@ class Boid {
          */
         this._underObservation = underObservation;
         this._perceived = perceived;
+
+        /*
+         *
+         *
+         */
+        this._alignmentPoint = alignmentPoint
+
+        /*
+         * Naapurustoon kuuluvien objektien keskipiste
+         * - average position (center of mass) of local flockmates
+         * - käytössä kun seurataan jotain määrättyä objektia
+         */
+        this._cohesionPoint = cohesionPoint
+
+        this._separationPoint = separationPoint
     }
 
 
@@ -154,9 +186,6 @@ class Boid {
      * @todo: Pitääkö velocityä kääntää, kun törmätään laitaan...
      */
     accelerate = (vec, maxSpeed) => {
-
-        let halfOfWidth = this._width / 2;
-        let halfOfHeight = this._height / 2;
 
 /*
  * S T E E T I N G
@@ -177,7 +206,13 @@ class Boid {
 let newVelocity = this._velocity.add(vec)
 newVelocity = newVelocity.setLength(maxSpeed)
 
-        //if(this.getId() === 'no1') this.debugMsg(vec, newVelocity);
+        /*
+        if(this.getId() === 'b-0'){
+            console.log("VEL: ", this._velocity.getX(), this._velocity.getY())
+            console.log("DES: ", vec.getX(), vec.getY())
+            console.log("NEW V: ", newVelocity.getX(), newVelocity.getY())
+        }
+        */
 
         let newPosition = this._position.add(this._velocity)
 
@@ -185,26 +220,26 @@ newVelocity = newVelocity.setLength(maxSpeed)
         /*
          * X - Akselin suuntainen tarkistus & korjaus
          */
-        if(newPosition.getX() + this._radius > halfOfWidth) {
-            newPosition = newPosition.setX(halfOfWidth - this._radius);
+        if(newPosition.getX() + this._radius > this._halfOfWidth) {
+            newPosition = newPosition.setX(this._halfOfWidth - this._radius);
 newVelocity = newVelocity.setX(newVelocity.getX() * -1)
         }
 
-        if(newPosition.getX() - this._radius < -halfOfWidth) {
-            newPosition = newPosition.setX(-halfOfWidth + this._radius);
+        if(newPosition.getX() - this._radius < -this._halfOfWidth) {
+            newPosition = newPosition.setX(-this._halfOfWidth + this._radius);
 newVelocity = newVelocity.setX(newVelocity.getX() * -1)
         }
         
         /*
          * Y - akselin suuntainen tarkistus & korjaus
          */
-        if(newPosition.getY() + this._radius > halfOfHeight) {
-            newPosition = newPosition.setY(halfOfHeight - this._radius);
+        if(newPosition.getY() + this._radius > this._halfOfHeight) {
+            newPosition = newPosition.setY(this._halfOfHeight - this._radius);
 newVelocity = newVelocity.setY(newVelocity.getY() * -1)
         }
 
-        if(newPosition.getY() - this._radius < -halfOfHeight) {
-            newPosition = newPosition.setY(-halfOfHeight + this._radius);
+        if(newPosition.getY() - this._radius < -this._halfOfHeight) {
+            newPosition = newPosition.setY(-this._halfOfHeight + this._radius);
 newVelocity = newVelocity.setY(newVelocity.getY() * -1)
         } 
 
@@ -218,9 +253,17 @@ newVelocity = newVelocity.setY(newVelocity.getY() * -1)
             this._width,
             this._height,
             this._underObservation,
-            this._perceived,
+            this._perceived
         )
 
+    }
+
+    getAlignmentPoint = () => {
+        return this._alignmentPoint;
+    }
+
+    getCohesionPoint = () => {
+        return this._cohesionPoint;
     }
 
     getId = () => {
@@ -229,6 +272,10 @@ newVelocity = newVelocity.setY(newVelocity.getY() * -1)
 
     getRadius = () => {
         return this._radius
+    }
+
+    getSeparationPoint = () => {
+        return this._separationPoint;
     }
 
     getVector = () => {
@@ -247,6 +294,44 @@ newVelocity = newVelocity.setY(newVelocity.getY() * -1)
         return this._underObservation
     }
 
+    setAlignmentPoint = (val) => {
+
+        return new Boid(
+            this._position.getX(),
+            this._position.getY(),
+            this._velocity.getLength(),
+            this._velocity.getAngle(),
+            this.getId(),
+            this._radius,
+            this._width,
+            this._height,
+            this._underObservation,
+            this._perceived,
+            val,
+            this._cohesionPoint,
+            this._separationPoint
+        )
+    }
+    
+    setCohesionPoint = (val) => {
+
+        return new Boid(
+            this._position.getX(),
+            this._position.getY(),
+            this._velocity.getLength(),
+            this._velocity.getAngle(),
+            this.getId(),
+            this._radius,
+            this._width,
+            this._height,
+            this._underObservation,
+            this._perceived,
+            this._alignmentPoint,
+            val,
+            this._separationPoint
+        )
+    }
+
     setPerceived = (val) => {
 
         this._perceived = val;
@@ -262,6 +347,25 @@ newVelocity = newVelocity.setY(newVelocity.getY() * -1)
             this._height,
             this._underObservation,
             this._perceived
+        )
+    }
+
+    setSeparationPoint = (val) => {
+
+        return new Boid(
+            this._position.getX(),
+            this._position.getY(),
+            this._velocity.getLength(),
+            this._velocity.getAngle(),
+            this.getId(),
+            this._radius,
+            this._width,
+            this._height,
+            this._underObservation,
+            this._perceived,
+            this._alignmentPoint,
+            this._cohesionPoint,
+            val
         )
     }
 
