@@ -24,15 +24,18 @@ const BOID_RADIUS = 4;
 
 const NUMBER_OF_BOIDS = 50
 
-const PERCEPTIONRADIUS = 100
+const PERCEPTIONRADIUS = 60
 const UNDER_OBSERVATION = 0
 
 /*
  * Initial values: Alignment, cohesion, separation 
  */
-const INITIAL_ALIGNMENT_VALUES =  {min: 0.1, value: 5, max: 10, step: 0.1}
-const INITIAL_COHESION_VALUES =  {min: 0.1, value: 5, max: 10, step: 0.1}
-const INITIAL_SEPARATION_VALUES =  {min: 0.1, value: 5, max: 10, step: 0.1}
+const INITIAL_ALIGNMENT_VALUES =  {min: 0, value: 1, max: 5, step: 0.1}
+const INITIAL_COHESION_VALUES =  {min: 0, value: 1, max: 5, step: 0.1}
+const INITIAL_SEPARATION_VALUES =  {min: 0, value: 1, max: 5, step: 0.1}
+
+const INITIAL_MAXFORCE_VALUES = {min: 0.1, value: 1, max: 10, step: 0.1}
+const INITIAL_MAXSPEED_VALUES = {min: 0.1, value: 4, max: 10, step: 0.1}
 
 const INITIAL_PERCEPTION_RADIUS =  {min: 10, value: 50, max: 100, step: 1}
 
@@ -67,16 +70,10 @@ const align = (current, boids, perceptionRadius) => {
      * Otetaan keskiarvo, mikäli lähistön kartoituksessa on huomioitu enemmän kuin yksi
      * Boid -objekti
      */
-    if(counter > 1) desired = desired.divide(counter)
-
-    /*
-     * Rajataan kurssin korjaus asetuksissa määrättyyn maksimipituuteen
-     
-    if(desired.getLength() > maxForce) {
-//console.log("Rajoitus", current.getId(), desired.getLength(), maxForce)
-        desired = desired.setLength(maxForce)
-    }
-    */
+    if(counter > 1) 
+        desired = desired.divide(counter)
+    else
+        desired = null;
 
 
     return desired
@@ -84,9 +81,14 @@ const align = (current, boids, perceptionRadius) => {
 }
 
 /*
+ * Kuinka paljon suuntaa halutaan muuttaa, jotta vauhti ja suunta vastaisivat lähiobjektien etenemistä
  *
+ * - lasketaan ensin absoluuttinen vektori
+ * - vähennetään tästä vektorista nykyinen suunta, jolloin saadaan tehtävä korjaus (steerin force)
+ * 
+ * @todo: Mitä jos palauttaapi nollavektorin.
  */
-const getDesiredAlignment = (boid, boids, perceptionRadius, maxForce) => {
+const getDesiredAlignment = (boid, boids, perceptionRadius, maxForce, maxSpeed = 2) => {
 
     let desiredAlignment = align(
         boid, 
@@ -94,13 +96,27 @@ const getDesiredAlignment = (boid, boids, perceptionRadius, maxForce) => {
         perceptionRadius
     )
 
-    if(desiredAlignment.getLength() > maxForce) {
-        //console.log(": ali E:", desiredAlignment.getLength())
-        desiredAlignment = desiredAlignment.setLength(maxForce)
-        //console.log(": ali J:",  desiredAlignment.getLength())
+
+    if(boid.getId() === 'b-0000'){
+        console.log(" --getAli--",boid.getId(),"---------- ")
+        console.log(" - ", desiredAlignment.getX(), desiredAlignment.getY())
+        console.log(" - len ", desiredAlignment.getLength())
+        console.log(" maxForce ", maxForce)
+        console.log(".........................................")
     }
 
-    //console.log("- ali", desiredAlignment.getX(), desiredAlignment.getY())
+    if(desiredAlignment !== null){
+
+        desiredAlignment = desiredAlignment
+.setLength(maxSpeed)    // ...velocity in the alignment to not actually be the actual average velocity but just the average direction
+        .subtract(boid.getVelocity())
+        .setLength(maxForce)
+        //.truncate(maxForce)
+
+    }
+    else 
+        desiredAlignment = new Vector(0,0) 
+
 
     return desiredAlignment
 
@@ -120,8 +136,7 @@ const cohesionPoint = (current, boids, perceptionRadius) => {
     let counter = 0;
 
     /*
-     * Selvitetään lähiympäristön objektit ja lasketaan keskipiste
-     * - huom! operoidaan objektien absoluuttisilla koordinaateilla
+     * Selvitetään lähiympäristön objektit ja lasketaan siirtymät
      */
     for(let other of boids){
 
@@ -129,14 +144,19 @@ const cohesionPoint = (current, boids, perceptionRadius) => {
 
         if((current.getId() !== other.getId()) && dist < perceptionRadius){
 
-            if(current.getId() === 'b-0101010'){
+            let diff = other.getVector().subtract(current.getVector())
+
+            if(current.getId() === 'b-01111'){
                 console.log(" ----------",current.getId(),"---------- ")
-                console.log(" diff " , other.getVector().getX(), other.getVector().getY(), `${other.getId()}`)
+                console.log(" curr", current.getVector().getX(), current.getVector().getY(), `${current.getId()}`)
+                console.log(" other " , other.getVector().getX(), other.getVector().getY(), `${other.getId()}`)
+                console.log(" dist " , dist)
+                console.log(" diff " , diff.getX(), diff.getY())
                 console.log(".........................................")
-             }
+            }
 
 
-            desired = desired.add(other.getVector())
+            desired = desired.add(diff)
             counter++;
         }
     }
@@ -145,10 +165,10 @@ const cohesionPoint = (current, boids, perceptionRadius) => {
      * Otetaan keskiarvo, mikäli lähistön kartoituksessa on huomioitu enemmän kuin yksi
      * Boid -objekti
      */
-    if(counter > 1) 
-        desired = desired.divide(counter)
-    else
+    if(counter < 1) 
         desired = null
+    else
+        desired = desired.divide(counter)
 
     return desired
 
@@ -162,46 +182,55 @@ const cohesion = (current, boids, perceptionRadius) => {
         perceptionRadius
     )
 
-    let desiredCohesion = new Vector(0,0);
+    let desiredCohesion = null;
 
+    
     if(cPoint !== null) {
 
-        /*
-         * huom! siirrytään absoluuttisista koordinaateista suhteellisiin
-         */
-        desiredCohesion = cPoint.subtract(current.getVector())
-
-        if(current.getId() === 'b-01010101'){
-            console.log(" ----------",current.getId(),"---------- ")
-            console.log(" desired " , desiredCohesion.getX(), desiredCohesion.getY())
-            console.log(".........................................")
-         }
+        desiredCohesion = cPoint
 
     }
+    
 
     return desiredCohesion
 
 }
 
-const getDesiredCohesion = (boid, boids, perceptionRadius, maxForce) => {
+/*
+ * Cohesion: steer to move towards the average position (center of mass) of local flockmates
+ * - .. jolloin objektit liikkuvat ryhmänä, eivätkä yksilöinä
+ */
+const getDesiredCohesion = (boid, boids, perceptionRadius, maxForce, maxSpeed = 2) => {
 
     /*
-     * Cohesion: steer to move towards the average position (center of mass) of local flockmates
+     * 
      */
      let desiredCohesion = cohesion(
          boid, 
          boids, 
          perceptionRadius       
      )
- 
-     /*
-      * Rajataan kurssin korjaus asetuksissa määrättyyn maksimipituuteen
-      */
-     if(desiredCohesion.getLength() > maxForce) {
-         //console.log(": coh E:", desiredCohesion.getLength())
-         desiredCohesion = desiredCohesion.setLength(maxForce)
-         //console.log(": coh J:",  desiredCohesion.getLength())
-     }
+
+if(boid.getId() === 'b-01111'){
+    console.log(" ¤ ------",boid.getId(), " ------ ¤")
+    console.log('perceptionRadius', perceptionRadius)
+    console.log(" desiredCohesion " , desiredCohesion.getX(), desiredCohesion.getY())
+    console.log(" length " , desiredCohesion.getLength())
+    console.log(" maxForce", maxForce)
+    console.log(".........................................")
+}
+
+
+    if(desiredCohesion !== null) {
+        desiredCohesion = desiredCohesion
+            .setLength(maxSpeed)
+            .subtract(boid.getVelocity()) // ... steering force
+            .setLength(maxForce)
+            //.truncate(maxForce)
+    } else
+        desiredCohesion = new Vector(0,0)
+     
+
  
      return desiredCohesion
  
@@ -209,6 +238,11 @@ const getDesiredCohesion = (boid, boids, perceptionRadius, maxForce) => {
 
 /*
  * S E P A R A T I O N
+ * 
+ * - pyritään välttämään törmäämistä lähistöllä olevien objektien kanssa
+ * 
+ * Kertoimen lasku napattu sivulta:
+ * - Noah Veltman’s Block (https://bl.ocks.org/veltman/995d3a677418100ac43877f3ed1cc728)
  */
 const separationPoint = (current, boids, perceptionRadius) => {
 
@@ -231,14 +265,26 @@ const separationPoint = (current, boids, perceptionRadius) => {
             /*
              * Huom! Käsitellään suhteellisia koordinaatteja
              */
-            let diff = current.getVector().subtract(other.getVector());
-            let porpotional = diff.divide(dist)
+            let diff = current.getVector().subtract(other.getVector())
 
- if(current.getId() === 'b-010101'){
-    console.log(" ----------",current.getId(),"---------- ")
-    console.log(" diff " , diff.getX(), diff.getY(), `${other.getId()}`)
-    console.log(" dist " , dist)
-    console.log(" por " , porpotional.getX(), porpotional.getY())
+            /*
+             * Halutaan päinvastaiseen neljännekseen! Ei tarvitse negatiivistä kerrointa, 
+             * kun vähennys laskettu "oikeassa suunnassa"
+             */
+            let factor = 1 / (dist)     
+            //let porpotional = diff.multiply(factor)
+
+            let porpotional = diff.setLength(factor)
+
+ if(current.getId() === 'b-0111'){
+    console.log(" ------",current.getId()," & ", `${other.getId()}`, " ------")
+    console.log(" curr " ,current.getVector().getX(), current.getVector().getY())
+    console.log(" other " ,other.getVector().getX(), other.getVector().getY())
+    console.log(" diff " , -1 * diff.getX(), -1 * diff.getY(), diff.getLength())
+    //console.log(" angle " , diff.getAngle())
+    //console.log(" dist " , dist)
+    //console.log("factor", factor)
+    console.log(" por " , porpotional.getX(), porpotional.getY(), porpotional.getLength())
     console.log(".........................................")
  }
 
@@ -249,19 +295,28 @@ const separationPoint = (current, boids, perceptionRadius) => {
         }
     }
 
+if(current.getId() === 'b-0101'){
+    console.log(" ------------- ",current.getId(), "--- ------")
+    console.log(" sum of desired " , desired.getX(), desired.getY())
+    console.log(".........................................")
+}
+
     /*
      * Otetaan keskiarvo, mikäli lähistön kartoituksessa on huomioitu enemmän kuin yksi
      * Boid -objekti
      */
-    if(counter > 1) 
-        desired = desired.divide(counter)
-    else
+    if(counter < 1)
         desired = null
+    else
+        desired = desired.divide(counter)
 
     return desired
 
 }
 
+/* 
+ *
+ */
 const separation = (current, boids, perceptionRadius) => {
 
     let sPoint = separationPoint (
@@ -270,26 +325,22 @@ const separation = (current, boids, perceptionRadius) => {
         perceptionRadius
     )
 
+    if(current.getId() === 'b-01212'){
+        console.log(" ------------- ",current.getId(), "--- ------")
+        console.log(" sepa Point " , sPoint.getX(), sPoint.getY())
+        console.log(".........................................")
+    }
+
     let desiredSeparation = (sPoint !== null) ? sPoint : new Vector(0,0);
 
     return desiredSeparation
 }
 
 /*
-
-       let desiredSeparation = separation(
-        boid, 
-        state.data, 
-        state.perceptionRadius        
-    )
-
-    if(desiredSeparation.getLength() > state.separation.value) {
-        console.log(": sep E:", desiredSeparation.getLength())
-        desiredSeparation = desiredSeparation.setLength(state.separation.value)
-        console.log(": sep J:",  desiredSeparation.getLength())
-    }
+ * Objektit pyrkivät säilyttämään vähintääkin minimietäisyyden toisiinsa
+ * - jotta eivät törmää toisiinsa
  */
-const getDesiredSeparation = (boid, boids, perceptionRadius, maxForce) => {
+const getDesiredSeparation = (boid, boids, perceptionRadius, maxForce, maxSpeed = 2) => {
 
     let desiredSeparation = separation(
         boid, 
@@ -297,11 +348,13 @@ const getDesiredSeparation = (boid, boids, perceptionRadius, maxForce) => {
         perceptionRadius        
     )
 
-    if(desiredSeparation.getLength() > maxForce) {
-        //console.log(": sep E:", desiredSeparation.getLength())
-        desiredSeparation = desiredSeparation.setLength(maxForce)
-        //console.log(": sep J:",  desiredSeparation.getLength())
-    }
+    desiredSeparation = desiredSeparation
+        //.truncate(maxSpeed)
+        .setLength(maxSpeed)
+        //.add(boid.getVelocity()) // Koodissa SUBTRACT
+        .subtract(boid.getVelocity()) // ... steering force
+.setLength(maxForce)
+//.truncate(maxForce)
 
     return desiredSeparation;
 
@@ -322,12 +375,17 @@ const highlightPerceived = (activeBoid, boids, alignmentSettings, cohesionSettin
         if(boid.getId() === activeBoid.getId()){
 
             let desiredCohesion = getDesiredCohesion(boid, boids, perceptionRadius, cohesionSettings.value)
-//console.log("- coh",desiredCohesion.getX(), desiredCohesion.getY())
-
             let desiredAlignment = getDesiredAlignment(boid, boids, perceptionRadius, alignmentSettings.value)
-
             let desiredSeparation = getDesiredSeparation(boid, boids, perceptionRadius, separationSettings.value)
-//console.log("- sepa", desiredSeparation.getX(), desiredSeparation.getY())
+
+
+if(boid.getId() === 'b-01111'){
+    console.log(" ----- hLight ------ ",boid.getId(), "--- hLigt ----")
+    console.log(" cohesion " , desiredCohesion.getX(), desiredCohesion.getY()) // MERKIT ERIPÄIN! 0.015329619637104148 -0.025787647465050214
+    //console.log(" separation " , desiredSeparation.getX(), desiredSeparation.getY()) // MERKIT ERIPÄIN! 0.015329619637104148 -0.025787647465050214
+    //console.log(" alignment " , desiredAlignment.getX(), desiredAlignment.getY()) // MERKIT ERIPÄIN! 0.015329619637104148 -0.025787647465050214
+    console.log(".........................................")
+}
 
             return boid
                 .setPerceived(false)
@@ -466,19 +524,18 @@ const getData = (n, width, height, r, active, perceptionRadius, alignmentSetting
  * 
  */
 const initialState = {
-    //data: getData(NUMBER_OF_BOIDS, WIDTH, HEIGHT, BOID_RADIUS, UNDER_OBSERVATION, INITIAL_PERCEPTION_RADIUS, INITIAL_ALIGNMENT_VALUES, INITIAL_COHESION_VALUES, INITIAL_SEPARATION_VALUES),
-    data: getMockData(WIDTH, HEIGHT, BOID_RADIUS, UNDER_OBSERVATION, INITIAL_PERCEPTION_RADIUS, INITIAL_ALIGNMENT_VALUES, INITIAL_COHESION_VALUES, INITIAL_SEPARATION_VALUES),
+    data: getData(NUMBER_OF_BOIDS, WIDTH, HEIGHT, BOID_RADIUS, UNDER_OBSERVATION, INITIAL_PERCEPTION_RADIUS, INITIAL_ALIGNMENT_VALUES, INITIAL_COHESION_VALUES, INITIAL_SEPARATION_VALUES),
+    //data: getMockData(WIDTH, HEIGHT, BOID_RADIUS, UNDER_OBSERVATION, INITIAL_PERCEPTION_RADIUS, INITIAL_ALIGNMENT_VALUES, INITIAL_COHESION_VALUES, INITIAL_SEPARATION_VALUES),
     isActive: false,
     perceptionRadius: INITIAL_PERCEPTION_RADIUS,
-    maxForce: {min: 0.1, value: 5, max: 10, step: 0.1},
-    maxSpeed: {min: 0.1, value: 5, max: 10, step: 0.1},
+    maxForce: INITIAL_MAXFORCE_VALUES,
+    maxSpeed: INITIAL_MAXSPEED_VALUES,
     alignment: INITIAL_ALIGNMENT_VALUES,
     separation: INITIAL_SEPARATION_VALUES,
     cohesion: INITIAL_COHESION_VALUES,
     height: HEIGHT,
     underObservation: UNDER_OBSERVATION,
-    width: WIDTH,
-counter: 0 // SAA POISTAA .. kierroslaskuri
+    width: WIDTH
 }
 
 
@@ -488,40 +545,57 @@ counter: 0 // SAA POISTAA .. kierroslaskuri
  */
 const calculateNewState = (state) => {
 
-    
     let activeBoid = null;
+
+    let debug = true
 
     let newData = state.data.map(boid => {
 
+/*
+ * @todo: separationille voisi olla oma säteensä
+ */
+let separationDistance = 50
+
+        /*
         let desiredAlignment = getDesiredAlignment(boid, state.data, state.perceptionRadius.value, state.alignment.value)
         let desiredCohesion = getDesiredCohesion(boid, state.data, state.perceptionRadius.value, state.cohesion.value)
         let desiredSeparation = getDesiredSeparation(boid, state.data, state.perceptionRadius.value, state.separation.value)
-   
+        */   
+
+        let desiredAlignment = getDesiredAlignment(boid, state.data, state.perceptionRadius.value, 1, state.maxSpeed.value)
+            .multiply(state.alignment.value)
+
+        let desiredCohesion = getDesiredCohesion(boid, state.data, state.perceptionRadius.value, 1,  state.maxSpeed.value)
+            .multiply(state.cohesion.value)
+
+        let desiredSeparation = getDesiredSeparation(boid, state.data, state.perceptionRadius.value, 1,  state.maxSpeed.value)
+            .multiply(state.separation.value)
 
         if(boid.isUnderObservation())
             activeBoid = boid
 
-        let allTogether = new Vector(0,0)
+        let allTogether = new Vector(0,0)   // ... ettei acceleration kumuloidu kierrosten myötä
             .add(desiredCohesion)
             .add(desiredAlignment)
             .add(desiredSeparation)
 
-        if(boid.getId() === 'b-0'){
+        if(boid.getId() === 'b-01221' && debug === true){
             console.log(" ----------",boid.getId(),"---------- ")
-            console.log(" ali " , desiredAlignment.getX(), desiredAlignment.getY())
+            //console.log(" cohe " , desiredCohesion.getX(), desiredCohesion.getY())
             console.log(" sepa " , desiredSeparation.getX(), desiredSeparation.getY())
-            console.log(" cohe " , desiredCohesion.getX(), desiredCohesion.getY())
+            //console.log(" ali " , desiredAlignment.getX(), desiredAlignment.getY())
             console.log(" ALL " , allTogether.getX(), allTogether.getY(), allTogether.getLength())
-            console.log(".........................................")
+            console.log(" >>>>>>>>>>>>>>>>> ")
         }
 
         boid = boid
             .accelerate(allTogether, state.maxSpeed.value)
 
 
-        if(boid.getId() === 'b-010101'){
-            console.log(" - ", allTogether.getX(), allTogether.getY())
-            console.log("Velo", boid.getVelocity().getX(), boid.getVelocity().getY())
+        if(boid.getId() === 'b-01'){
+            console.log("new Pos", boid.getVector().getX(), boid.getVector().getY())
+            console.log("new Velo", boid.getVelocity().getX(), boid.getVelocity().getY())
+            console.log(".........................................")
         }
             
 
@@ -535,12 +609,9 @@ const calculateNewState = (state) => {
     if(activeBoid !== null)
         newData = highlightPerceived(activeBoid, newData, state.alignment, state.cohesion,state.separation,state.perceptionRadius.value)
 
-    let newCounter = state.counter+1;
-
     return {
         ...state,
         data: newData,
-        counter: newCounter
     }
 }
 
@@ -587,18 +658,6 @@ const toggleTrackingState = (data, active, alignmentSettings, cohesionSettings, 
 }
 
 /*
-
-            const updatedSpeed = {
-                ...state.maxSpeed,
-                value: action.data.value
-            }
-
-            return {
-                ...state,
-                maxSpeed: updatedSpeed
-            }
-
-
  */
 const setPerceptionRadius = (val, state) => {
 
@@ -684,7 +743,7 @@ export const animate = (isActive) => {
                     data: {}
                 })
     
-            }, 100)
+            }, 50)
 
             // kirjataan timerin käynnistys muistiin
             dispatch({

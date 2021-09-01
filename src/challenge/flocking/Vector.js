@@ -58,6 +58,14 @@ class Vector {
         return this._y
     }
 
+    multiply = (val) => {
+
+        return new Vector (
+            this._x * val,
+            this._y * val
+        )
+    }
+
     setAngle = (angle) => {
         let length = this.getLength();
 
@@ -107,6 +115,19 @@ class Vector {
             this._y - v2.getY()
         )
 
+    }
+
+    /*
+     * - mikäli vektori on pidempi kuin raja-arvo, pätkäistään se raja-arvon mittaiseksi
+     */
+    truncate = (max) => {
+        let length = this.getLength();
+
+        if(length > max) {
+            return this.setLength(max)
+        }
+
+        return this;
     }
 
 }
@@ -181,7 +202,7 @@ class Boid {
     /*
      * Päivitetään:
      * - sijaintia aktiivisella liikevoimalla
-     * - liikevoimaa uudella 
+     * - liikevoimaa uudella kiihtyvyydellä
      * 
      * @todo: Pitääkö velocityä kääntää, kun törmätään laitaan...
      */
@@ -204,17 +225,18 @@ class Boid {
 
 //let newVelocity = this._velocity.subtract(vec)
 let newVelocity = this._velocity.add(vec)
-newVelocity = newVelocity.setLength(maxSpeed)
 
-        /*
-        if(this.getId() === 'b-0'){
-            console.log("VEL: ", this._velocity.getX(), this._velocity.getY())
-            console.log("DES: ", vec.getX(), vec.getY())
-            console.log("NEW V: ", newVelocity.getX(), newVelocity.getY())
+        if(newVelocity.getLength() > maxSpeed) {
+            newVelocity = newVelocity.setLength(maxSpeed)
         }
-        */
+
+        
+if(this.getId() === 'b-09999'){
+    console.log(" new Velocity " , newVelocity.getX(), newVelocity.getY(), newVelocity.getLength())
+}
 
         let newPosition = this._position.add(this._velocity)
+        //let newPosition = this._position.add(newVelocity)
 
 
         /*

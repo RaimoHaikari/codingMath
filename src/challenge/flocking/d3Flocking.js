@@ -63,6 +63,8 @@ let velocityLineScale = 5
 
         const transformToBoidLocation = (d) => {
 
+            let debug = false
+
             let xTrans = d.getVector().getX();
             let yTrans = d.getVector().getY();
 
@@ -71,7 +73,7 @@ let velocityLineScale = 5
             let asDegrees = ((d.getVelocity().getAngle()) * 180 / Math.PI) + 90
             let asRad = d.getVelocity().getAngle()
 
-            if(d.getId() === 'b-0'){
+            if(d.getId() === 'b-0' && debug === true){
                 console.log(" : ", xTrans, yTrans, asRad, asDegrees)
             }
 
@@ -109,6 +111,8 @@ let velocityLineScale = 5
          * @todo: yhdistä displayCohesionPoint ja displayAlignmentPoint
          */
         const displayAlignmentPoint = () => {
+
+//console.log("displayAlignmentPoint")
 
             const aPointUpdate = gElem
                 .selectAll('.alignmentPointLayer')

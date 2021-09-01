@@ -24,7 +24,7 @@ const Flocking = () => {
     /*
 
      */
-    const {activeBoid, counter, data, displayCohesion, height, isActive, perceptionRadius, width} = useSelector(state => {
+    const {activeBoid, data, displayCohesion, height, isActive, perceptionRadius, width} = useSelector(state => {
 
         // state.flocking
         let flocking = state.flocking;
@@ -106,7 +106,11 @@ const Flocking = () => {
 
 
         return () => {
-            console.log('data cleanup')
+
+            let debug = false
+
+            if(debug === true)
+                console.log('data cleanup')
         }
         
     }, [data, perceptionRadius])
@@ -153,7 +157,6 @@ const Flocking = () => {
                     isActive?"Sammuta":"Käynnistä"
                 }
             </button>
-            <span>{counter}</span>
         </>
     );
 };

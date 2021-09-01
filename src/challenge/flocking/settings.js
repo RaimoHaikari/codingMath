@@ -86,7 +86,21 @@ const Settings = () => {
             maxValue = {maxSpeed.max}
             name = "Max Speed"
             id = "maxSpeed"
-            />            
+            />
+            
+            <Slider 
+                changeHandler = {(value) => {
+                    dispatch(updateVelocitySpec({type: 'maxForce', value: parseFloat(value)}))
+                }}
+            color="#0074D9"
+            step={maxForce.step}
+            minValue = {maxForce.min}
+            value = {maxForce.value}
+            maxValue = {maxForce.max}
+            name = "Max Force"
+            id = "maxForce"
+            /> 
+
         </>
     );
 };

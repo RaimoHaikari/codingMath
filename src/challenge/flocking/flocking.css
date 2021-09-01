@@ -1,11 +1,11 @@
 #alignmentPointID {
     stroke: rgb(68, 0, 255);
-    visibility: hidden;
+    /* visibility: hidden; */
 }
 
 #cohesionPointID {
     stroke: red;
-    visibility: hidden;
+    visibility: hidden; 
 
 }
 
@@ -15,7 +15,8 @@
 }
 
 #centerPointID {
-    stroke: gray;  
+    stroke: gray; 
+    visibility: hidden;
 }
 
 
